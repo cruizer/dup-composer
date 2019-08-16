@@ -38,7 +38,6 @@ backup_groups:
     encrypted: no
     backup_type: scp
     backup_uri: scp://myscpuser@host.example.com/
-    backup_password: xxxxxx
     volume_size: 200
     origins:
       /home/fun:
