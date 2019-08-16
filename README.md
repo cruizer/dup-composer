@@ -31,7 +31,7 @@ backup_groups:
       /etc:
         backup_path: /etc
         restore_path: /root/restored/etc
-      /home/shared
+      /home/shared:
         backup_path: /home/shared
         restore_path: /root/restored/home/shared
   my_scp_backups:
