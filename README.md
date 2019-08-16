@@ -48,3 +48,8 @@ backup_groups:
         backup_path: /home/katy
         restore_path: /root/restored/home/katy
 ```
+## Usage
+
+```bash
+duplicity-compose.py backup_group1[/origin1/origin2/...] command
+```
