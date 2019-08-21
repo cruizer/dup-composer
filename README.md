@@ -8,10 +8,12 @@ Simple configuration wrapper for Duplicity
 ```yaml
 backup_groups:
   my_local_backups:
-    encrypted: no
-    backup_type: local
+    encryption:
+      enabled: no
+    backup_provider:
+      url: file:///
     volume_size: 200
-    origins:
+    sources:
       /var/www/html:
         backup_path: /root/backups/var/www/html
         restore_path: /root/restored/var/www/html
@@ -19,15 +21,16 @@ backup_groups:
         backup_path: /root/backups/home/tommy
         restore_path: /root/restored/home/tommy
   my_s3_backups:
-    encrypted: yes
-    backup_type: s3
-    backup_uri: s3://s3.sa-east-1.amazonaws.com/my-backup-bucket
-    aws_access_key: xxxxxx
-    aws_secret_key: xxxxxx
-    gpg_key: xxxxxx
-    gpg_passphrase: xxxxxx
+    encryption:
+      enabled: yes
+      gpg_key: xxxxxx
+      gpg_passphrase: xxxxxx
+    backup_provider:
+      url: s3://s3.sa-east-1.amazonaws.com/my-backup-bucket
+      aws_access_key: xxxxxx
+      aws_secret_key: xxxxxx
     volume_size: 50
-    origins:
+    sources:
       /etc:
         backup_path: /etc
         restore_path: /root/restored/etc
@@ -35,11 +38,13 @@ backup_groups:
         backup_path: /home/shared
         restore_path: /root/restored/home/shared
   my_scp_backups:
-    encrypted: no
-    backup_type: scp
-    backup_uri: scp://myscpuser@host.example.com/
+    encryption:
+      enabled: no
+    backup_provider:
+      url: scp://myscpuser@host.example.com/
+      password: xxxxxx
     volume_size: 200
-    origins:
+    sources:
       /home/fun:
         backup_path: /home/fun
         restore_path: /root/restored/home/fun
