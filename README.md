@@ -29,6 +29,10 @@ backup_groups:
       url: s3://s3.sa-east-1.amazonaws.com/my-backup-bucket
       aws_access_key: xxxxxx
       aws_secret_key: xxxxxx
+    backup_file_prefixes:
+      manifest: manifest_
+      archive: archive_
+      signature: signature_
     volume_size: 50
     sources:
       /etc:
