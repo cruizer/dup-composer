@@ -11,7 +11,7 @@ backup_groups:
     encryption:
       enabled: no
     backup_provider:
-      url: file:///
+      url: file://
     volume_size: 200
     sources:
       /var/www/html:
