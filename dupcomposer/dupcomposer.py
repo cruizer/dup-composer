@@ -57,6 +57,8 @@ class BackupRunner:
         for group in self.config.groups:
             opts =  group.get_opts_raw(self.mode)
             for i in range(len(opts)):
+                # BackupGroup only returns the options,
+                # so prepend with the actual command.
                 opts[i][:0] = ['duplicity']
                 opts[i] = ' '.join(opts[i])
             cmds[group.name] = opts

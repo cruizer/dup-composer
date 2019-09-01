@@ -51,6 +51,7 @@ class BackupGroup:
             if i not in self.group_data:
                 raise KeyError('Invalid backup group configuration data')
 
+        # Set up composition objects.
         self.encryption = BackupEncryption(group_data['encryption'])
         self.provider = BackupProvider.factory(group_data['backup_provider'])
         self._setup_prefixes()
@@ -67,6 +68,7 @@ class BackupGroup:
         """
         opts_all = []
         for source in self.sources:
+            # Chain the CLI options.
             opts_all.append(self.encryption.get_cmd() + self._get_volume_cmd() +
                              self.prefix.get_cmd() + source.get_cmd(mode))
         return opts_all
@@ -78,6 +80,7 @@ class BackupGroup:
         :rtype: dict
         """
         env_all = {}
+        # Merge the environment variable dicts into a master.
         env_all.update(self.provider.get_env())
         env_all.update(self.encryption.get_env())
         return env_all
@@ -90,6 +93,7 @@ class BackupGroup:
         """Instantiate :class:`BackupSource` objects for the group."""
         self.sources = []
         sources_data = self.group_data['sources']
+        # We sort it for consistency with the test fixtures.
         for k in sorted(sources_data.keys()):
             self.sources.append(BackupSource(k, sources_data[k], self.provider))
 
@@ -152,6 +156,7 @@ class BackupEncryption:
         :param encryption_data: Raw encryption related config.
         :type encryption_data: dict
         """
+        # For encryption to work we need both the key and the passphrase.
         if self.enabled and {'gpg_key', 'gpg_passphrase'} < set(encryption_data.keys()):
             self.gpg_key = encryption_data['gpg_key']
             self.gpg_passphrase = encryption_data['gpg_passphrase']
@@ -247,6 +252,7 @@ class BackupProviderS3(BackupProvider):
         :return: The full backup path to backup to / restore from.
         :rtype: str
         """
+        # Make sure only one slash separates the URL scheme and the path.
         return '/'.join([self.url.rstrip('/'),
                          path.lstrip('/')])
 
@@ -316,6 +322,7 @@ class BackupSource:
                  path, depending on the mode (action).
         :rtype: list
         """
+        # The Duplicity action is determined by the URL / path order.
         if mode == 'backup':
             return [self.source_path,
                     self.provider.get_cmd(self.backup_path)]
@@ -335,7 +342,7 @@ class BackupFilePrefixes:
         self.valid_types = ('manifest', 'archive', 'signature')
         self.config = config
         self.prefix_commands = []
-        # If we have data, generate the cmd string
+        # If we have data, generate the cmd string.
         if config is not None:
             self._generate_commands()
 
@@ -354,6 +361,7 @@ class BackupFilePrefixes:
         Side effect (and purpose) of this method is to populate the
         self.prefix_commands list with the relevant CLI options.
         """
+        # Sort the keys for consistent test results with fixtures.
         for k in sorted(self.config.keys()):
             if k in self.valid_types:
                 self.prefix_commands.extend(['--file-prefix-{}'.format(k), self.config[k]])
