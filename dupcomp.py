@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Launch dupcomposer (CLI entrypoint)."""
 import sys
 from dupcomposer.dupcomposer import read_config, BackupRunner
 from dupcomposer.backup_config import BackupConfig
