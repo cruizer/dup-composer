@@ -26,8 +26,8 @@ def read_config(file_path):
 class BackupRunner:
     """Collect the Duplicity commands and execute the backups.
 
-    :param config: The complete configuration data.
-    :type config: dict
+    :param config: Processed configuration object.
+    :type config: :class:`backup_config.BackupConfig`
     :param mode: The execution mode (Duplicity command) to execute.
     :type mode: str
     """
