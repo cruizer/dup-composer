@@ -156,7 +156,7 @@ class BackupEncryption:
         :param encryption_data: Raw encryption related config.
         :type encryption_data: dict
         """
-        # For encryption to work we need both the key and the passphrase.
+        # For encryption to work, we need both the key and the passphrase.
         if self.enabled and {'gpg_key', 'gpg_passphrase'} < set(encryption_data.keys()):
             self.gpg_key = encryption_data['gpg_key']
             self.gpg_passphrase = encryption_data['gpg_passphrase']
@@ -210,7 +210,7 @@ class BackupProvider:
         return ''.join([self.url, path])
 
     def get_env(self):
-        # TODO: indicate that this is an abstract method
+        # TODO: Indicate that this is an abstract method.
         pass
 
 class BackupProviderLocal(BackupProvider):
@@ -252,7 +252,7 @@ class BackupProviderS3(BackupProvider):
         :return: The full backup path to backup to / restore from.
         :rtype: str
         """
-        # Make sure only one slash separates the URL scheme and the path.
+        # Ensure, that only one slash separates the URL scheme and the path.
         return '/'.join([self.url.rstrip('/'),
                          path.lstrip('/')])
 
