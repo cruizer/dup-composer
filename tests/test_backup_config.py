@@ -382,6 +382,66 @@ class TestBackupSource(unittest.TestCase):
                           self.backup_sources[0].get_cmd,
                           'foo')
 
+    def test_invalid_source_path(self):
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '-/foo/bar',
+                          {'backup_path': '/root',
+                           'restore_path': '/root/restored'},
+                          self.local_provider)
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo\\/bar',
+                          {'backup_path': '/root',
+                           'restore_path': '/root/restored'},
+                          self.local_provider)
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo/b\nar',
+                          {'backup_path': '/root',
+                           'restore_path': '/root/restored'},
+                          self.local_provider)
+
+    def test_invalid_backup_path(self):
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo/bar',
+                          {'backup_path': '-/root',
+                           'restore_path': '/root/restored'},
+                          self.local_provider)
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo/bar',
+                          {'backup_path': '/root\\',
+                           'restore_path': '/root/restored'},
+                          self.local_provider)
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo/bar',
+                          {'backup_path': '/ro\not',
+                           'restore_path': '/root/restored'},
+                          self.local_provider)
+
+    def test_invalid_restore_path(self):
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo/bar',
+                          {'backup_path': '/root',
+                           'restore_path': '-/root/restored'},
+                          self.local_provider)
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo/bar',
+                          {'backup_path': '/root',
+                           'restore_path': '\\/root/restored'},
+                          self.local_provider)
+        self.assertRaises(ValueError,
+                          BackupSource,
+                          '/foo/bar',
+                          {'backup_path': '/root',
+                           'restore_path': '/roo\x7ft/restored'},
+                          self.local_provider)
+
     def test_config_key_error(self):
         self.assertRaises(KeyError,
                           BackupSource,

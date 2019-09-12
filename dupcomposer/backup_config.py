@@ -307,6 +307,7 @@ class BackupSource:
             len(self.restore_path) == 0):
 
             raise ValueError('Empty path is not allowed.')
+        self._check_forbidden_chars()
             
     def get_cmd(self, mode='backup'):
         """Get the source and target path for the given action.
@@ -331,6 +332,18 @@ class BackupSource:
                     self.restore_path]
         else:
             raise ValueError('Invalid mode parameter.')
+
+    def _check_forbidden_chars(self):
+        # Detect control chars + backslash
+        for p in [self.source_path,
+                  self.backup_path,
+                  self.restore_path]:
+            if (p[0] == '-' or
+                re.search(r'[\x00-\x1f\x7f\\]', p)):
+
+                raise ValueError('Leading hyphens, control characters '
+                                 'and backslash are not allowed in '
+                                 'the path configuration.')
 
 class BackupFilePrefixes:
     """Determine the prefix of the archive, manifest and signature files.
