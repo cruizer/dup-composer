@@ -8,22 +8,28 @@ class TestBackupRunner(unittest.TestCase):
     def setUpClass(cls):
         cls.config_data = read_config('tests/fixtures/dupcomposer-config.yml')
         cls.cmds_expected_bkup = \
-            {'my_s3_backups': [('duplicity --encrypt-key xxxxxx --sign-key xxxxxx --volsize 50 '
-                                '--file-prefix-archive archive_ --file-prefix-manifest manifest_ '
-                                '--file-prefix-signature signature_ /home/shared '
-                                's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared'),
-                               ('duplicity --encrypt-key xxxxxx --sign-key xxxxxx --volsize 50 '
-                                '--file-prefix-archive archive_ --file-prefix-manifest manifest_ '
-                                '--file-prefix-signature signature_ etc '
-                                's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc')],
-             'my_local_backups': [('duplicity --no-encryption --volsize 200 /var/www/html '
-                                   'file:///root/backups/var/www/html'),
-                                  ('duplicity --no-encryption --volsize 200 home/tommy '
-                                   'file://backups/home/tommy')],
-             'my_scp_backups': [('duplicity --no-encryption --volsize 200 /home/katy '
-                                 'scp://myscpuser@host.example.com//home/katy'),
-                                ('duplicity --no-encryption --volsize 200 home/fun '
-                                 'scp://myscpuser@host.example.com/home/fun')]}
+            {'my_s3_backups': [['duplicity', '--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                                '--volsize', '50',
+                                '--file-prefix-archive', 'archive_',
+                                '--file-prefix-manifest', 'manifest_',
+                                '--file-prefix-signature', 'signature_',
+                                '/home/shared',
+                                's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared'],
+                               ['duplicity', '--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                                '--volsize', '50',
+                                '--file-prefix-archive', 'archive_',
+                                '--file-prefix-manifest', 'manifest_',
+                                '--file-prefix-signature', 'signature_',
+                                'etc',
+                                's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']],
+             'my_local_backups': [['duplicity', '--no-encryption', '--volsize', '200',
+                                   '/var/www/html', 'file:///root/backups/var/www/html'],
+                                  ['duplicity', '--no-encryption', '--volsize', '200',
+                                   'home/tommy', 'file://backups/home/tommy']],
+             'my_scp_backups': [['duplicity', '--no-encryption', '--volsize', '200',
+                                 '/home/katy', 'scp://myscpuser@host.example.com//home/katy'],
+                                ['duplicity', '--no-encryption', '--volsize', '200',
+                                 'home/fun', 'scp://myscpuser@host.example.com/home/fun']]}
 
     def setUp(self):
         self.runner_backup_mode = BackupRunner(BackupConfig(self.config_data), 'backup')
