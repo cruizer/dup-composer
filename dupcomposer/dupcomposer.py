@@ -1,3 +1,4 @@
+
 """Run the backup and related system IO.
 
 Classes:
@@ -9,6 +10,8 @@ Functions:
 read_config: Read the configuration file and load the YAML data.
 """
 import yaml
+import time
+import subprocess
 from dupcomposer import backup_config
 
 def read_config(file_path):
@@ -60,6 +63,62 @@ class BackupRunner:
                 # BackupGroup only returns the options,
                 # so prepend with the actual command.
                 opts[i][:0] = ['duplicity']
-                opts[i] = ' '.join(opts[i])
             cmds[group.name] = opts
         return cmds
+
+    def run_cmds(self):
+        """Execute the Duplicity commands."""
+        commands = self.get_cmds_raw()
+        for group in sorted(commands):
+            print('Running backups for group: {}'.format(group))
+            print('==\n==')
+            # Process the commands for the given group.
+            self._run_group_cmds(commands, group)
+
+    def _run_group_cmds(self, commands, group):
+        """Execute the Duplicity commands for a group.
+
+        For each command it prints the command to be run, then
+        executes it.
+
+        :param commands: A list of command argument lists for the given group..
+        :type commands: list
+        :param group: The name of the group.
+        :type group: str
+        """
+        for cmd in commands[group]:
+            print('Executing Duplicity command: {}'.format(' '.join(cmd)))
+            print('==\nDuplicity output follows:\n==\n')
+            # Call the function actually creating the process.
+            self._run_cmd(cmd)
+
+
+    def _run_cmd(self, command):
+        """Execute the duplicty command.
+
+        This does the actual work to run the duplicity process.
+        It prints the output fetched from Duplicity and prints the result -
+        success or failure - to the console.
+
+        :param command: The command argument list.
+        :type command: list
+        """
+        proc = subprocess.Popen(command,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                universal_newlines=True)
+        while True:
+            try:
+                print(proc.stdout.readline(), end='')
+            except Exception:
+                proc.kill()
+                break
+            if proc.poll() is not None:
+                print(proc.stdout.read())
+                print('== End of Duplicity output ==')
+                if proc.returncode == 0:
+                    print('Duplicity returned NORMALLY.\n')
+                else:
+                    print('Duplicity returned with ERROR CODE {}'.format(proc.returncode))
+                break
+            time.sleep(1)
