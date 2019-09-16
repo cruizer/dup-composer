@@ -8,12 +8,17 @@ def main():
     config_raw =  read_config('tests/fixtures/dupcomposer-config.yml')
     config = BackupConfig(config_raw)
     runner = BackupRunner(config,sys.argv[1])
+    """
+    # Dry run
     commands = runner.get_cmds_raw()
     # Sorting keys for consistent ordering of output (for functional tests).
     for group in sorted(commands):
         print('Generating commands for group {}:\n'.format(group))
         for cmd in commands[group]: print(cmd)
         print('\n')
+    """
+    # True run
+    runner.run_cmds()
 
 if __name__ == '__main__':
          main()
