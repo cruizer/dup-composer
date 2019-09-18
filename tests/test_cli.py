@@ -29,19 +29,132 @@ class TestCLI(unittest.TestCase):
                                  ['--no-encryption', '--volsize', '200', '/home/katy',
                                   'scp://myscpuser@host.example.com//home/katy'],
                                  ['--no-encryption', '--volsize', '200', 'home/fun',
-                                  'scp://myscpuser@host.example.com/home/fun']]}
+                                  'scp://myscpuser@host.example.com/home/fun']]},
+            'backup_example_specgroups':
+                     {'config_file': 'dupcomposer-config.yml',
+                      'command': ['python3', 'dupcomp.py',
+                                  'backup', 'my_local_backups', 'my_s3_backups'],
+                      'result': [['--no-encryption', '--volsize', '200', '/var/www/html',
+                                  'file:///root/backups/var/www/html'],
+                                 ['--no-encryption', '--volsize', '200', 'home/tommy',
+                                  'file://backups/home/tommy'],
+                                 ['--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                                  '--volsize', '50', '--file-prefix-archive', 'archive_',
+                                  '--file-prefix-manifest', 'manifest_',
+                                  '--file-prefix-signature', 'signature_',
+                                  '/home/shared',
+                                  's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared'],
+                                 ['--encrypt-key xxxxxx', '--sign-key xxxxxx', '--volsize', '50',
+                                  '--file-prefix-archive', 'archive_',
+                                  '--file-prefix-manifest', 'manifest_',
+                                  '--file-prefix-signature', 'signature_',
+                                  'etc', 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']]}
         }
         cls.dummy_outfile = 'tests/temp/dummy-out.json'
+        # Update path, so the mock Duplicity implementation is called.
+        os.putenv('PATH', ':'.join(['./tests/mock', os.getenv('PATH')]))
 
     def setUp(self):
         pass
 
     def tearDown(self):
-        os.remove(self.dummy_outfile)
+        try:
+            os.remove(self.dummy_outfile)
+        except FileNotFoundError:
+            pass
 
     def test_simple(self):
-        os.putenv('PATH', ':'.join(['./tests/mock', os.getenv('PATH')]))
-        subprocess.run(self.test_data['backup_example_complete']['command'])
+        self.assertEqual(self._get_duplicity_args('backup_example_complete'),
+                         self.test_data['backup_example_complete']['result'])
+
+    def test_specific_groups(self):
+        self.assertEqual(self._get_duplicity_args('backup_example_specgroups'),
+                         self.test_data['backup_example_complete']['result'])
+
+    def test_dry(self):
+        expected = ('Generating commands for group my_local_backups:\n\n'
+                    'duplicity --no-encryption --volsize 200 /var/www/html '
+                    'file:///root/backups/var/www/html\n'
+                    'duplicity --no-encryption --volsize 200 home/tommy '
+                    'file://backups/home/tommy\n\n'
+                    'Generating commands for group my_s3_backups:\n\n'
+                    'duplicity --encrypt-key xxxxxx --sign-key xxxxxx '
+                    '--volsize 50 --file-prefix-archive archive_ '
+                    '--file-prefix-manifest manifest_ '
+                    '--file-prefix-signature signature_ '
+                    '/home/shared s3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared\n'
+                    'duplicity --encrypt-key xxxxxx --sign-key xxxxxx '
+                    '--volsize 50 --file-prefix-archive archive_ '
+                    '--file-prefix-manifest manifest_ '
+                    '--file-prefix-signature signature_ '
+                    'etc s3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc\n\n'
+                    'Generating commands for group my_scp_backups:\n\n'
+                    'duplicity --no-encryption --volsize 200 /home/katy '
+                    'scp://myscpuser@host.example.com//home/katy\n'
+                    'duplicity --no-encryption --volsize 200 home/fun '
+                    'scp://myscpuser@host.example.com/home/fun\n\n')
+
+        self.assertEqual(self._get_cmd_out(['-d', 'backup']),
+                         expected)
+
+    def test_dry_specific_groups(self):
+        expected = ('Generating commands for group my_s3_backups:\n\n'
+                    'duplicity --encrypt-key xxxxxx --sign-key xxxxxx '
+                    '--volsize 50 --file-prefix-archive archive_ '
+                    '--file-prefix-manifest manifest_ '
+                    '--file-prefix-signature signature_ '
+                    '/home/shared s3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared\n'
+                    'duplicity --encrypt-key xxxxxx --sign-key xxxxxx '
+                    '--volsize 50 --file-prefix-archive archive_ '
+                    '--file-prefix-manifest manifest_ '
+                    '--file-prefix-signature signature_ '
+                    'etc s3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc\n\n'
+                    'Generating commands for group my_scp_backups:\n\n'
+                    'duplicity --no-encryption --volsize 200 /home/katy '
+                    'scp://myscpuser@host.example.com//home/katy\n'
+                    'duplicity --no-encryption --volsize 200 home/fun '
+                    'scp://myscpuser@host.example.com/home/fun\n\n')
+
+        self.assertEqual(self._get_cmd_out(['-d', 'backup',
+                                            'my_s3_backups',
+                                            'my_scp_backups']),
+                         expected)
+
+    def test_invalid_option(self):
+        self.assertRegex(self._get_cmd_out(['-c', 'foo.bar', '-a', 'backup']),
+                         r'^option -a not recognized')
+
+    def test_invalid_group(self):
+        self.assertRegex(self._get_cmd_out(['backup', 'foo']),
+                         r'ValueError: No group foo in the configuration!')
+
+    def test_specific_config_file(self):
+       expected = ('Generating commands for group groupone:\n\n'
+                   'duplicity --no-encryption --volsize 500 '
+                   '/etc file:///root/backups/system\n'
+                   'duplicity --no-encryption --volsize 500 '
+                   '/home/foo/bar file:///root/backups/user\n\n'
+                   'Generating commands for group grouptwo:\n\n'
+                   'duplicity --encrypt-key yyyyyy --sign-key yyyyyy --volsize 200 '
+                   '/var/lib scp://myuser@host.example2.com//root/backups/system/libs\n\n')
+       self.assertEqual(self._get_cmd_out(['-d', '-c',
+                                           'tests/fixtures/dupcomposer-config-2.yml',
+                                           'backup']),
+                        expected)
+
+    # END test methods
+    # START utility methods
+
+    def _get_cmd_out(self, args):
+        """Execute dupcomp with the provided args and return the output."""
+        cmd = ['python3', 'dupcomp.py']
+        cmd.extend(args)
+        proc = subprocess.Popen(cmd, universal_newlines=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        return proc.communicate()[0]
+
+    def _get_duplicity_args(self, test_data_variant):
+        subprocess.run(self.test_data[test_data_variant]['command'])
         with open(self.dummy_outfile) as f:
             result = json.loads(f.read())
-        self.assertEqual(result, self.test_data['backup_example_complete']['result'])
+        return result

@@ -1,0 +1,27 @@
+backup_groups:
+  groupone:
+    encryption:
+      enabled: no
+    backup_provider:
+      url: file://
+    volume_size: 500
+    sources:
+      /home/foo/bar:
+        backup_path: /root/backups/user
+        restore_path: /root/restore/user
+      /etc:
+        backup_path: /root/backups/system
+        restore_path: /root/restore/system
+  grouptwo:
+    encryption:
+      enabled: yes
+      gpg_key: yyyyyy
+      gpg_passphrase: zzzzzz
+    backup_provider:
+      url: scp://myuser@host.example2.com//
+      password: cccccc
+    volume_size: 200
+    sources:
+      /var/lib:
+        backup_path: /root/backups/system/libs
+        restore_path: restore/libs
