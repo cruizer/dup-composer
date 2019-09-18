@@ -7,6 +7,7 @@ from dupcomposer.dupcomposer import read_config, BackupRunner
 from dupcomposer.backup_config import BackupConfig
 
 def main():
+    # default config file to look for
     config_file = 'dupcomposer-config.yml'
     dry_run = False
     # Collecting and parsing options
@@ -16,6 +17,7 @@ def main():
         print(err)
         usage()
         sys.exit(1)
+
     for opt, a in opts:
         if opt == '-c':
             if os.path.isfile(a):
@@ -28,11 +30,16 @@ def main():
             dry_run = True
 
     config_raw =  read_config(config_file)
+    # Check if groups requested are valid
     for group in args[1:]:
         if group not in config_raw.get('backup_groups', {}):
             raise ValueError('No group {} in the configuration!'.format(group))
+
+    # Setting up the environment
     config = BackupConfig(config_raw)
     runner = BackupRunner(config,args[0])
+
+    # Do the actual run
     if dry_run:
         commands = runner.get_cmds_raw(args[1:])
         # Sorting keys for consistent ordering of output (for functional tests).
