@@ -18,7 +18,7 @@ backup_groups:
       gpg_key: yyyyyy
       gpg_passphrase: zzzzzz
     backup_provider:
-      url: scp://myuser@host.example2.com//
+      url: scp://myuser@host.example2.com/
       password: cccccc
     volume_size: 200
     sources:
