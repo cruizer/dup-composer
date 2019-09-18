@@ -59,5 +59,5 @@ backup_groups:
 ## Usage
 
 ```bash
-duplicity-compose.py backup_group1[/origin1/origin2/...] command
+dupcomp.py [-d] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
 ```
