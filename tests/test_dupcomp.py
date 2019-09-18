@@ -53,3 +53,11 @@ class TestBackupRunner(unittest.TestCase):
        self.maxDiff = None
        self.assertEqual(self.runner_backup_mode.get_cmds_raw(),
                         self.cmds_expected_bkup)
+
+    def test_backup_get_cmds_raw_specgroup(self):
+        group_names = ['my_s3_backups', 'my_local_backups']
+        data_expected = {}
+        for name in group_names:
+            data_expected[name] = self.cmds_expected_bkup[name]
+        self.assertEqual(self.runner_backup_mode.get_cmds_raw(group_names),
+                         data_expected)

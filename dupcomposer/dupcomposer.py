@@ -46,29 +46,36 @@ class BackupRunner:
         else:
             raise ValueError('{} is not a valid run mode.'.format(mode))
 
-    def get_cmds_raw(self):
+    def get_cmds_raw(self, group_names=None):
         """Get the Duplicity command lists for each group.
 
         It returns a dictionary with the config group names as keys.
         Each key has a list as its value and the list contains the
         Duplicity commands partitioned in a list.
 
+        :param group_names: The group names to give the commands for.
+        :type group_names: list
         :return: The Duplicity commands for each backup group.
         :rtype: dict
         """
         cmds = {}
         for group in self.config.groups:
-            opts =  group.get_opts_raw(self.mode)
-            for i in range(len(opts)):
-                # BackupGroup only returns the options,
-                # so prepend with the actual command.
-                opts[i][:0] = ['duplicity']
-            cmds[group.name] = opts
+            if not group_names or group.name in group_names:
+                opts =  group.get_opts_raw(self.mode)
+                for i in range(len(opts)):
+                    # BackupGroup only returns the options,
+                    # so prepend with the actual command.
+                    opts[i][:0] = ['duplicity']
+                cmds[group.name] = opts
         return cmds
 
-    def run_cmds(self):
-        """Execute the Duplicity commands."""
-        commands = self.get_cmds_raw()
+    def run_cmds(self, group_names=None):
+        """Execute the Duplicity commands.
+
+        :param group_names: The group names to execute.
+        :type group_names: list
+        """
+        commands = self.get_cmds_raw(group_names)
         for group in sorted(commands):
             print('Running backups for group: {}'.format(group))
             print('==\n==')
