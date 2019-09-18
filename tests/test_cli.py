@@ -7,10 +7,12 @@ class TestCLI(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.workdir_original = os.getcwd()
+        os.chdir('./tests/fixtures')
         cls.test_data = {
             'backup_example_complete':
                      {'config_file': 'dupcomposer-config.yml',
-                      'command': ['python3', 'dupcomp.py', 'backup'],
+                      'command': ['python3', '../../dupcomp.py', 'backup'],
                       'result': [['--no-encryption', '--volsize', '200', '/var/www/html',
                                   'file:///root/backups/var/www/html'],
                                  ['--no-encryption', '--volsize', '200', 'home/tommy',
@@ -32,7 +34,7 @@ class TestCLI(unittest.TestCase):
                                   'scp://myscpuser@host.example.com/home/fun']]},
             'backup_example_specgroups':
                      {'config_file': 'dupcomposer-config.yml',
-                      'command': ['python3', 'dupcomp.py',
+                      'command': ['python3', '../../dupcomp.py',
                                   'backup', 'my_local_backups', 'my_s3_backups'],
                       'result': [['--no-encryption', '--volsize', '200', '/var/www/html',
                                   'file:///root/backups/var/www/html'],
@@ -50,9 +52,12 @@ class TestCLI(unittest.TestCase):
                                   '--file-prefix-signature', 'signature_',
                                   'etc', 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']]}
         }
-        cls.dummy_outfile = 'tests/temp/dummy-out.json'
+        cls.dummy_outfile = '../temp/dummy-out.json'
         # Update path, so the mock Duplicity implementation is called.
-        os.putenv('PATH', ':'.join(['./tests/mock', os.getenv('PATH')]))
+        os.putenv('PATH', ':'.join(['../mock', os.getenv('PATH')]))
+    @classmethod
+    def tearDownClass(cls):
+        os.chdir(cls.workdir_original)
 
     def setUp(self):
         pass
@@ -138,7 +143,7 @@ class TestCLI(unittest.TestCase):
                    'duplicity --encrypt-key yyyyyy --sign-key yyyyyy --volsize 200 '
                    '/var/lib scp://myuser@host.example2.com//root/backups/system/libs\n\n')
        self.assertEqual(self._get_cmd_out(['-d', '-c',
-                                           'tests/fixtures/dupcomposer-config-2.yml',
+                                           './dupcomposer-config-2.yml',
                                            'backup']),
                         expected)
 
@@ -147,7 +152,7 @@ class TestCLI(unittest.TestCase):
 
     def _get_cmd_out(self, args):
         """Execute dupcomp with the provided args and return the output."""
-        cmd = ['python3', 'dupcomp.py']
+        cmd = ['python3', '../../dupcomp.py']
         cmd.extend(args)
         proc = subprocess.Popen(cmd, universal_newlines=True,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

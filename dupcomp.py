@@ -7,7 +7,7 @@ from dupcomposer.dupcomposer import read_config, BackupRunner
 from dupcomposer.backup_config import BackupConfig
 
 def main():
-    config_file = 'tests/fixtures/dupcomposer-config.yml'
+    config_file = 'dupcomposer-config.yml'
     dry_run = False
     # Collecting and parsing options
     try:

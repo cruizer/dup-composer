@@ -5,7 +5,7 @@ import os.path
 
 def main():
     print("Duplicity dummy implementation executed.")
-    outfile = 'tests/temp/dummy-out.json'
+    outfile = '../temp/dummy-out.json'
     cache = []
     if os.path.isfile(outfile):
         with open(outfile) as f:
