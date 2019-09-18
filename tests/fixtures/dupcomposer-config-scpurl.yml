@@ -1,0 +1,12 @@
+backup_groups:
+  scp_backup:
+    encryption:
+      enabled: no
+    backup_provider:
+      url: scp://user@myhost.example.com
+      password: yyyyyy
+    volume_size: 200
+    sources:
+      /var/www/html:
+        backup_path: /home/bkup
+        restore_path: /root/restored
