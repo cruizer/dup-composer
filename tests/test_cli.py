@@ -7,6 +7,8 @@ class TestCLI(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # Pretend that tests/fixtures is the directory
+        # dupcomp.py was called from.
         cls.workdir_original = os.getcwd()
         os.chdir('./tests/fixtures')
         cls.test_data = {
@@ -57,6 +59,7 @@ class TestCLI(unittest.TestCase):
         os.putenv('PATH', ':'.join(['../mock', os.getenv('PATH')]))
     @classmethod
     def tearDownClass(cls):
+        # Reset workdir after we are done with the CLI tests.
         os.chdir(cls.workdir_original)
 
     def setUp(self):
