@@ -52,7 +52,13 @@ class TestCLI(unittest.TestCase):
                                   '--file-prefix-archive', 'archive_',
                                   '--file-prefix-manifest', 'manifest_',
                                   '--file-prefix-signature', 'signature_',
-                                  'etc', 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']]}
+                                  'etc', 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']]},
+            'backup_scpurl_fix':
+                     {'config_file': 'dupcomposer-config-scpurl.yml',
+                      'command': ['python3', '../../dupcomp.py', '-c',
+                                  'dupcomposer-config-scpurl.yml', 'backup'],
+                      'result': [['--no-encryption', '--volsize', '200', '/var/www/html',
+                                  'scp://user@myhost.example.com//home/bkup']]}
         }
         cls.dummy_outfile = '../temp/dummy-out.json'
         # Update path, so the mock Duplicity implementation is called.
@@ -78,6 +84,10 @@ class TestCLI(unittest.TestCase):
     def test_specific_groups(self):
         self.assertEqual(self._get_duplicity_args('backup_example_specgroups'),
                          self.test_data['backup_example_complete']['result'])
+
+    def test_scp_missing_trailing_backslash(self):
+        self.assertEqual(self._get_duplicity_args('backup_scpurl_fix'),
+                         self.test_data['backup_scpurl_fix']['result'])
 
     def test_dry(self):
         expected = ('Generating commands for group my_local_backups:\n\n'
@@ -126,6 +136,17 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(self._get_cmd_out(['-d', 'backup',
                                             'my_s3_backups',
                                             'my_scp_backups']),
+                         expected)
+
+    def test_dry_scp_missing_trailing_backslash(self):
+        expected = ('Generating commands for group scp_backup:\n\n'
+                    'duplicity --no-encryption --volsize 200 '
+                    '/var/www/html '
+                    'scp://user@myhost.example.com//home/bkup\n\n')
+
+        self.assertEqual(self._get_cmd_out(['-d', '-c',
+                                            'dupcomposer-config-scpurl.yml',
+                                            'backup']),
                          expected)
 
     def test_invalid_option(self):

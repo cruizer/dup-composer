@@ -207,7 +207,12 @@ class BackupProvider:
         :return: The full backup path to backup to / restore from.
         :rtype: str
         """
-        return ''.join([self.url, path])
+        # strip and readd "/" with join in case it
+        # is missing from the end of the URL.
+        if self.url[-1] == '/':
+            return ''.join([self.url, path])
+        else:
+            return ''.join([self.url + '/', path])
 
     def get_env(self):
         # TODO: Indicate that this is an abstract method.
