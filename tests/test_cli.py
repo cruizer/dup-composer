@@ -15,7 +15,8 @@ class TestCLI(unittest.TestCase):
             'backup_example_complete':
                      {'config_file': 'dupcomposer-config.yml',
                       'command': ['python3', '../../dupcomp.py', 'backup'],
-                      'result': [['--no-encryption', '--volsize', '200', '/var/www/html',
+                      'result': {'args':
+                                 [['--no-encryption', '--volsize', '200', '/var/www/html',
                                   'file:///root/backups/var/www/html'],
                                  ['--no-encryption', '--volsize', '200', 'home/tommy',
                                   'file://backups/home/tommy'],
@@ -33,32 +34,46 @@ class TestCLI(unittest.TestCase):
                                  ['--no-encryption', '--volsize', '200', '/home/katy',
                                   'scp://myscpuser@host.example.com//home/katy'],
                                  ['--no-encryption', '--volsize', '200', 'home/fun',
-                                  'scp://myscpuser@host.example.com/home/fun']]},
+                                  'scp://myscpuser@host.example.com/home/fun']],
+                                 'envs': [{},
+                                          {},
+                                          {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'},
+                                          {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'},
+                                          {'FTP_PASSWORD': 'xxxxxx'},
+                                          {'FTP_PASSWORD': 'xxxxxx'}]}},
             'backup_example_specgroups':
                      {'config_file': 'dupcomposer-config.yml',
                       'command': ['python3', '../../dupcomp.py',
                                   'backup', 'my_local_backups', 'my_s3_backups'],
-                      'result': [['--no-encryption', '--volsize', '200', '/var/www/html',
-                                  'file:///root/backups/var/www/html'],
-                                 ['--no-encryption', '--volsize', '200', 'home/tommy',
-                                  'file://backups/home/tommy'],
-                                 ['--encrypt-key xxxxxx', '--sign-key xxxxxx',
-                                  '--volsize', '50', '--file-prefix-archive', 'archive_',
-                                  '--file-prefix-manifest', 'manifest_',
-                                  '--file-prefix-signature', 'signature_',
-                                  '/home/shared',
-                                  's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared'],
+                      'result': {'args':
+                                 [['--no-encryption', '--volsize', '200', '/var/www/html',
+                                   'file:///root/backups/var/www/html'],
+                                  ['--no-encryption', '--volsize', '200', 'home/tommy',
+                                   'file://backups/home/tommy'],
+                                  ['--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                                   '--volsize', '50', '--file-prefix-archive', 'archive_',
+                                   '--file-prefix-manifest', 'manifest_',
+                                   '--file-prefix-signature', 'signature_',
+                                   '/home/shared',
+                                   's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared'],
                                  ['--encrypt-key xxxxxx', '--sign-key xxxxxx', '--volsize', '50',
                                   '--file-prefix-archive', 'archive_',
                                   '--file-prefix-manifest', 'manifest_',
                                   '--file-prefix-signature', 'signature_',
-                                  'etc', 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']]},
+                                  'etc', 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']],
+                                 'envs':
+                                 [{},
+                                  {},
+                                  {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'},
+                                  {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'}]}},
             'backup_scpurl_fix':
                      {'config_file': 'dupcomposer-config-scpurl.yml',
                       'command': ['python3', '../../dupcomp.py', '-c',
                                   'dupcomposer-config-scpurl.yml', 'backup'],
-                      'result': [['--no-encryption', '--volsize', '200', '/var/www/html',
-                                  'scp://user@myhost.example.com//home/bkup']]}
+                      'result': {'args':
+                                 [['--no-encryption', '--volsize', '200', '/var/www/html',
+                                   'scp://user@myhost.example.com//home/bkup']],
+                                 'envs': [{'FTP_PASSWORD': 'yyyyyy'}]}}
         }
         cls.dummy_outfile = '../temp/dummy-out.json'
         # Update path, so the mock Duplicity implementation is called.
@@ -78,15 +93,16 @@ class TestCLI(unittest.TestCase):
             pass
 
     def test_simple(self):
-        self.assertEqual(self._get_duplicity_args('backup_example_complete'),
+        self.assertEqual(self._get_duplicity_results('backup_example_complete'),
                          self.test_data['backup_example_complete']['result'])
 
+
     def test_specific_groups(self):
-        self.assertEqual(self._get_duplicity_args('backup_example_specgroups'),
+        self.assertEqual(self._get_duplicity_results('backup_example_specgroups'),
                          self.test_data['backup_example_complete']['result'])
 
     def test_scp_missing_trailing_backslash(self):
-        self.assertEqual(self._get_duplicity_args('backup_scpurl_fix'),
+        self.assertEqual(self._get_duplicity_results('backup_scpurl_fix'),
                          self.test_data['backup_scpurl_fix']['result'])
 
     def test_dry(self):
@@ -182,7 +198,7 @@ class TestCLI(unittest.TestCase):
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         return proc.communicate()[0]
 
-    def _get_duplicity_args(self, test_data_variant):
+    def _get_duplicity_results(self, test_data_variant):
         subprocess.run(self.test_data[test_data_variant]['command'])
         with open(self.dummy_outfile) as f:
             result = json.loads(f.read())

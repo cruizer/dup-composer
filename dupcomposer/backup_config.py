@@ -22,14 +22,14 @@ class BackupConfig:
     """
     def __init__(self, config_data):
         self.config_data = config_data
-        self.groups = []
+        self.groups = {}
         self.createGroups()
 
     def createGroups(self):
         """Generate a list of :class:`BackupGroup` objects."""
         groups_conf = self.config_data['backup_groups']
         for group_name in groups_conf:
-            self.groups.append(BackupGroup(groups_conf[group_name], group_name))
+            self.groups[group_name] = BackupGroup(groups_conf[group_name], group_name)
 
 class BackupGroup:
     """Orchestrate the backup options for the given config group.

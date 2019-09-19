@@ -12,6 +12,7 @@ read_config: Read the configuration file and load the YAML data.
 import yaml
 import time
 import subprocess
+import os
 from dupcomposer import backup_config
 
 def read_config(file_path):
@@ -60,13 +61,13 @@ class BackupRunner:
         """
         cmds = {}
         for group in self.config.groups:
-            if not group_names or group.name in group_names:
-                opts =  group.get_opts_raw(self.mode)
+            if not group_names or group in group_names:
+                opts =  self.config.groups[group].get_opts_raw(self.mode)
                 for i in range(len(opts)):
                     # BackupGroup only returns the options,
                     # so prepend with the actual command.
                     opts[i][:0] = ['duplicity']
-                cmds[group.name] = opts
+                cmds[group] = opts
         return cmds
 
     def run_cmds(self, group_names=None):
@@ -97,10 +98,10 @@ class BackupRunner:
             print('Executing Duplicity command: {}'.format(' '.join(cmd)))
             print('==\nDuplicity output follows:\n==\n')
             # Call the function actually creating the process.
-            self._run_cmd(cmd)
+            self._run_cmd(cmd, self.config.groups[group].get_env())
 
 
-    def _run_cmd(self, command):
+    def _run_cmd(self, command, env):
         """Execute the duplicty command.
 
         This does the actual work to run the duplicity process.
@@ -110,7 +111,10 @@ class BackupRunner:
         :param command: The command argument list.
         :type command: list
         """
+        env_complete = dict(os.environ)
+        env_complete.update(env)
         proc = subprocess.Popen(command,
+                                env=env_complete,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
                                 universal_newlines=True)

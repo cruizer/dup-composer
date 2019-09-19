@@ -1,22 +1,36 @@
 #!/usr/bin/env python
 import sys
 import json
-import os.path
+import os
+
+
+def filter_dup_env(env):
+    """Filter Duplicity related environment variables.
+
+    Keep only the environment variables, that are used
+    by Duplicity.
+    """
+    duplicity_vars = ('AWS_ACCESS_KEY', 'AWS_SECRET_KEY', 'FTP_PASSWORD')
+    filtered = {key: env[key] for key in duplicity_vars if key in env}
+    return filtered
+
 
 def main():
     print("Duplicity dummy implementation executed.")
     outfile = '../temp/dummy-out.json'
-    cache = []
+    cache = {'args': [], 'envs': []}
     if os.path.isfile(outfile):
         with open(outfile) as f:
             filecontent = f.read()
             if filecontent:
                 cache = json.loads(filecontent)
 
-    cache.append(sys.argv[1:])
+    cache['args'].append(sys.argv[1:])
+    cache['envs'].append(filter_dup_env(os.environ))
 
     with open(outfile, 'w') as f:
         f.write(json.dumps(cache))
+
 
 if __name__ == '__main__':
     main()

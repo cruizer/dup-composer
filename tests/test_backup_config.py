@@ -26,7 +26,7 @@ class TestBackupConfig(unittest.TestCase):
         self.assertEqual(len(self.backup_config.groups), 3)
 
     def test_backup_groups_instances(self):
-        for group in self.backup_config.groups:
+        for group in self.backup_config.groups.values():
             self.assertIsInstance(group, BackupGroup)
 
 class TestBackupGroup(unittest.TestCase):
