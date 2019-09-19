@@ -377,6 +377,26 @@ class TestBackupSource(unittest.TestCase):
             self.assertEqual(source.get_cmd('restore'),
                              cmd)
 
+    def test_get_cmd_missing_restore_path(self):
+        provider = BackupProvider.factory({'url': 'file://'})
+        source_empty_restore_path = BackupSource(
+                '/var/www/html',
+                {'backup_path': '/root/backups', 'restore_path': ''},
+                provider
+        )
+        source_no_restore_path = BackupSource(
+                '/var/www/html',
+                {'backup_path': '/root/backups'},
+                provider
+        )
+        self.assertRaises(ValueError,
+                          source_empty_restore_path.get_cmd,
+                          'restore')
+        self.assertRaises(ValueError,
+                          source_no_restore_path.get_cmd,
+                          'restore')
+
+
     def test_get_cmd_invalid_mode(self):
         self.assertRaises(ValueError,
                           self.backup_sources[0].get_cmd,
@@ -462,12 +482,7 @@ class TestBackupSource(unittest.TestCase):
                           {'backup_path': '',
                            'restore_path': '/root/restored'},
                           self.local_provider)
-        self.assertRaises(ValueError,
-                          BackupSource,
-                          '/root',
-                          {'backup_path': '/root',
-                           'restore_path': ''},
-                          self.local_provider)
+
 
 class TestBackupFilePrefixes(unittest.TestCase):
 

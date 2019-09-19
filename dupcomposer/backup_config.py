@@ -301,15 +301,15 @@ class BackupSource:
     :param provider: The URL scheme target to backup to / restore from.
     :type provider: class:`BackupProviderLocal`, class:`BackupProviderS3`,
                     class:`BackupProviderSCP`
+    :raises ValueError: if the source or backup path is empty.
     """
     def __init__(self, source_path, config, provider):
         self.source_path = source_path
         self.backup_path = config['backup_path']
-        self.restore_path = config['restore_path']
+        self.restore_path = config.get('restore_path', None)
         self.provider = provider
         if (len(self.source_path) == 0 or 
-            len(self.backup_path) == 0 or
-            len(self.restore_path) == 0):
+            len(self.backup_path) == 0):
 
             raise ValueError('Empty path is not allowed.')
         self._check_forbidden_chars()
@@ -323,7 +323,9 @@ class BackupSource:
 
         :param mode: Duplicity command, either 'backup' or 'restore'.
         :type mode: str
-        :raises ValueError: if the mode is neither 'backup' nor 'restore'.
+        :raises ValueError: if the mode is neither 'backup' nor 'restore',
+                            or if no restore path is defined and we do
+                            a restore.
         :return: A list of the source and backup; backup and restore
                  path, depending on the mode (action).
         :rtype: list
@@ -333,6 +335,8 @@ class BackupSource:
             return [self.source_path,
                     self.provider.get_cmd(self.backup_path)]
         elif mode == 'restore':
+            if not self.restore_path:
+                raise ValueError('Restore path is not defined in the configuration.')
             return [self.provider.get_cmd(self.backup_path),
                     self.restore_path]
         else:
@@ -343,6 +347,8 @@ class BackupSource:
         for p in [self.source_path,
                   self.backup_path,
                   self.restore_path]:
+            # In case restore_path is empty
+            if not p: continue
             if (p[0] == '-' or
                 re.search(r'[\x00-\x1f\x7f\\]', p)):
 
