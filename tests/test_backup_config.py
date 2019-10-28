@@ -1,5 +1,6 @@
 import unittest
-from  dupcomposer.dupcomposer import read_config
+from unittest.mock import patch
+from dupcomposer.dupcomposer import read_config
 from dupcomposer.backup_config import (BackupConfig, BackupGroup,
                                        BackupEncryption, BackupProvider,
                                        BackupProviderLocal, BackupProviderS3,
@@ -179,9 +180,29 @@ class TestBackupEncryption(unittest.TestCase):
         cls.config_encryption_on = (cls.config_data['backup_groups']
                                                    ['my_s3_backups']
                                                    ['encryption'])
+        cls.config_with_keyring = {'enabled': True, 'gpg_key': 'xxxxxx',
+                                   'gpg_passphrase': ['service', 'account']}
+        cls.config_with_keyring_invalid = {'enabled': True, 'gpg_key': 'xxx',
+                                           'gpg_passphrase': [1, 2, 3]}
     def setUp(self):
         self.backup_encryption_off = BackupEncryption(self.config_encryption_off)
         self.backup_encryption_on = BackupEncryption(self.config_encryption_on)
+
+    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
+    def test_keyring_read(self, mock_krhelper):
+        mock_krhelper.get_secret.return_value = 'mypassphrase'
+        self.backup_enc_on_keyring = BackupEncryption(self.config_with_keyring)
+        self.assertEqual(list(mock_krhelper.get_secret.call_args[0][0]),
+                         ['service', 'account'])
+        self.assertEqual(self.backup_enc_on_keyring.gpg_passphrase,
+                         'mypassphrase')
+
+
+    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
+    def test_keyring_read_invalid(self, mock_krhelper):
+        self.assertRaises(ValueError,
+                          BackupEncryption,
+                          self.config_with_keyring_invalid)
 
     def test_enabled_flag(self):
         self.assertIs(self.backup_encryption_off.enabled, False)

@@ -13,6 +13,7 @@ BackupSource: Backup/restore path options.
 BackupFilePrefixes: Handle the file prefixing for backup files.
 """
 import re
+from dupcomposer import keyring_helper
 
 class BackupConfig:
     """Generate the backup groups from the config data and store them.
@@ -159,11 +160,27 @@ class BackupEncryption:
         # For encryption to work, we need both the key and the passphrase.
         if self.enabled and {'gpg_key', 'gpg_passphrase'} < set(encryption_data.keys()):
             self.gpg_key = encryption_data['gpg_key']
-            self.gpg_passphrase = encryption_data['gpg_passphrase']
+            self._set_passphrase(encryption_data['gpg_passphrase'])
         elif not self.enabled:
             self.gpg_key = self.gpg_passphrase = None
         else:
             raise ValueError('Encryption is enabled, but GPG keys are missing.')
+
+
+    def _set_passphrase(self, pp_config):
+        """Set the passphrase, get it from keyring if needed.
+
+        :param pp_config: Either the passphrase itself, or a list with two
+                          members specifying the keyring service and account.
+        :type pp_config: str, list
+        """
+        if isinstance(pp_config, str):
+            self.gpg_passphrase = pp_config
+        elif isinstance(pp_config, list) and len(pp_config) == 2:
+            self.gpg_passphrase = keyring_helper.get_secret(pp_config)
+        else:
+            raise ValueError('Unable to get/set '
+                             'passphrase with data: %s' % pp_config)
 
 class BackupProvider:
     """Abstract and factory class for specialized providers.
