@@ -79,6 +79,8 @@ encryption:
 
 If the `enabled` node is set to `no`, encryption is disabled, there is no need to configure the `gpg-key` and `gpg-passphrase` nodes. When encryption is enabled however, they are mandatory. This key will be used both for signing and encrypting the backup data.
 
+**Keyring support:** The value of `gpg_passphrase` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details.
+
 ### Backup provider
 
 The `backup-provider` configuration to be configured largely depends on the type of the provider, determined by the URL scheme:
@@ -100,6 +102,8 @@ backup-provider:
 
 In this case, you need to specify the username of the remote *SCP* host in the first part of the *SCP* URL, which is what you would do using *Duplicity* directly as well. Use the `password` node to specify the password.
 
+**Keyring support:** The value of `password` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details.
+
 Finally, you have to configure **AWS S3** like this:
 
 ```yaml
@@ -110,6 +114,8 @@ backup-provider:
 ```
 
 The S3 bucket URL is configured as the `url` node value, while `aws_access_key` and `aws_secret_key` need to contain your *AWS* generated keys for the bucket. Like with the rest of the providers, the actual path, folder, within the bucket shouldn't be added to the URL.
+
+**Keyring support:** The value of `aws_secret_key` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details.
 
 ### Backup file prefixes
 
