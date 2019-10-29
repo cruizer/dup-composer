@@ -308,6 +308,7 @@ class TestBackupProviderS3(unittest.TestCase):
                                                    ['my_s3_backups']
                                                    ['backup_provider'])
 
+
     def setUp(self):
         self.backup_s3 = BackupProvider.factory(self.config_provider_s3)
 
@@ -321,6 +322,26 @@ class TestBackupProviderS3(unittest.TestCase):
         self.assertEqual(self.backup_s3.get_env(), {'AWS_ACCESS_KEY': 'xxxxxx',
                                                     'AWS_SECRET_KEY': 'xxxxxx'})
 
+    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
+    def test_get_env_from_keyring(self, mock_krhelper):
+        mock_krhelper.get_secret.return_value = 'mysecretkey'
+        provider = BackupProvider.factory({'url': 's3://dummybucket.s3.example.com/test',
+                                          'aws_access_key': 'xxxxxx',
+                                          'aws_secret_key': ['aws', 'account']})
+        self.assertEqual(provider.get_env(), {'AWS_ACCESS_KEY': 'xxxxxx',
+                                              'AWS_SECRET_KEY': 'mysecretkey'})
+        mock_krhelper.get_secret.assert_called_once_with(['aws', 'account'])
+
+
+    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
+    def test_instantiate_wrong_secret(self, mock_krhelper):
+        self.assertRaises(ValueError,
+                          BackupProvider.factory,
+                          {'url': 's3://dummybucket.s3.example.com/test',
+                           'aws_access_key': 'xxxxxx',
+                           'aws_secret_key': [1, 2, 3]})
+
+
     def test_missing_keys(self):
         self.assertRaises(KeyError,
                           BackupProvider.factory,
@@ -330,6 +351,7 @@ class TestBackupProviderS3(unittest.TestCase):
                           BackupProvider.factory,
                           {'url': 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket',
                            'aws_secret_key': 'xxxxxx'})
+
         
 class TestBackupProviderSCP(unittest.TestCase):
 
@@ -355,6 +377,16 @@ class TestBackupProviderSCP(unittest.TestCase):
     def test_get_env(self):
         self.assertEqual(self.backup_scp.get_env(), {'FTP_PASSWORD': 'xxxxxx'})
         self.assertEqual(self.backup_scp_nopass.get_env(), {})
+
+
+    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
+    def test_get_env_from_keyring(self, mock_krhelper):
+        mock_krhelper.get_secret.return_value = 'mykeyringpassword'
+        provider = BackupProvider.factory({'url': 'scp://myscpuser@host.exp.com/test',
+                                           'password': ['scpserver', 'myscpuser']})
+        self.assertEqual(provider.get_env(), {'FTP_PASSWORD': 'mykeyringpassword'})
+        mock_krhelper.get_secret.assert_called_once_with(['scpserver', 'myscpuser'])
+
 
 class TestBackupSource(unittest.TestCase):
 

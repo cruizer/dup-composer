@@ -235,6 +235,23 @@ class BackupProvider:
         # TODO: Indicate that this is an abstract method.
         pass
 
+
+    def _load_secret(self, secret_def):
+        """Determine the secret type and load from the keyring is needed.
+
+        :param secret_def: The configuration value decribing the secret.
+        :type secret_def: str, list
+        """
+        # We return the plaintext secret as-is
+        if isinstance(secret_def, str):
+            return secret_def
+        # We read the secret from the keyring
+        elif isinstance(secret_def, list) and len(secret_def) == 2:
+            return keyring_helper.get_secret(secret_def)
+        else:
+            raise ValueError('Invalid secret configuration: %s' % secret_def)
+
+
 class BackupProviderLocal(BackupProvider):
     """Local filesystem backup target provider.
 
@@ -261,7 +278,8 @@ class BackupProviderS3(BackupProvider):
     def __init__(self, provider_data):
         super().__init__(provider_data)
         self.access_key = provider_data['aws_access_key']
-        self.secret_key = provider_data['aws_secret_key']
+        self.secret_key = self._load_secret(provider_data['aws_secret_key'])
+
 
     def get_cmd(self, path):
         """Append the backup path to the target URL scheme.
@@ -296,6 +314,10 @@ class BackupProviderSCP(BackupProvider):
     def __init__(self, provider_data):
         super().__init__(provider_data)
         self.password = provider_data.get('password', None)
+        # If we have password data, we need to run it through the loader
+        if self.password:
+            self.password = self._load_secret(self.password)
+
 
     def get_env(self):
         """Get the shell env. variable for SSH backup.
