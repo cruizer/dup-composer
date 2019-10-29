@@ -2,6 +2,7 @@
 import sys
 import json
 import os
+import uuid
 
 
 def filter_dup_env(env):
@@ -17,7 +18,8 @@ def filter_dup_env(env):
 
 def main():
     print("Duplicity dummy implementation executed.")
-    outfile = '../temp/dummy-out.json'
+    # Read the output file we need to write into
+    outfile = os.environ['duplicity_mock_outfile']
     cache = {'args': [], 'envs': []}
     if os.path.isfile(outfile):
         with open(outfile) as f:

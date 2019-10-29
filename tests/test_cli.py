@@ -2,6 +2,7 @@ import unittest
 import subprocess
 import os
 import json
+import uuid
 
 class TestCLI(unittest.TestCase):
 
@@ -75,9 +76,14 @@ class TestCLI(unittest.TestCase):
                                    'scp://user@myhost.example.com//home/bkup']],
                                  'envs': [{'FTP_PASSWORD': 'yyyyyy'}]}}
         }
-        cls.dummy_outfile = '../temp/dummy-out.json'
+        #cls.dummy_outfile = '../temp/dummy-out.json'
+        cls.dummy_outfile = '/tmp/' + str(uuid.uuid4()) + '.json'
+        # We share the generated outfile with the mock
+        os.environ['duplicity_mock_outfile'] = cls.dummy_outfile
         # Update path, so the mock Duplicity implementation is called.
-        os.putenv('PATH', ':'.join(['../mock', os.getenv('PATH')]))
+        os.environ['PATH'] = ':'.join(['../mock', os.environ['PATH']])
+
+
     @classmethod
     def tearDownClass(cls):
         # Reset workdir after we are done with the CLI tests.
