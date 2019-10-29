@@ -77,16 +77,16 @@ encryption:
   gpg_passphrase: examplepassphrase123
 ```
 
-If the `enabled` node is set to `no`, encryption is disabled, there is no need to configure the `gpg-key` and `gpg-passphrase` nodes. When encryption is enabled however, they are mandatory. This key will be used both for signing and encrypting the backup data.
+If the `enabled` node is set to `no`, encryption is disabled, there is no need to configure the `gpg_key` and `gpg_passphrase` nodes. When encryption is enabled however, they are mandatory. This key will be used both for signing and encrypting the backup data.
 
 **Keyring support:** The value of `gpg_passphrase` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details.
 
 ### Backup provider
 
-The `backup-provider` configuration to be configured largely depends on the type of the provider, determined by the URL scheme:
+The `backup_provider` configuration to be configured largely depends on the type of the provider, determined by the URL scheme:
 
 ```yaml
-backup-provider:
+backup_provider:
   url: file://
 ```
 
@@ -95,7 +95,7 @@ This configuration sets *Dup-composer* up to save the backup files on the **loca
 For a **remote SCP backup**, you need a slightly different configuration:
 
 ```yaml
-backup-provider:
+backup_provider:
   url: scp://myscpuser@host.example.com/
   password: examplepassword123
 ```
@@ -107,7 +107,7 @@ In this case, you need to specify the username of the remote *SCP* host in the f
 Finally, you have to configure **AWS S3** like this:
 
 ```yaml
-backup-provider:
+backup_provider:
   url: s3://s3.sa-east-1.amazonaws.com/my-backup-bucket
   aws_access_key: EXAMPLEACCESSKEY
   aws_secret_key: ExAmPlESeCrEtKeY
@@ -132,7 +132,7 @@ The prefixes can be specifically set up for each file type generated at the back
 
 ### Volumes
 
-The `volume-size` node is rather simple: a number should be given as its value; this determines the **archive size in megabytes**.
+The `volume_size` node is rather simple: a number should be given as its value; this determines the **archive size in megabytes**.
 
 ### Sources
 
