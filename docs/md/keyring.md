@@ -95,3 +95,54 @@ Once the backup is complete, you can close the DBUS session with:
 ```
 
 Remember: You have to have the *DBUS session* and *gnome-keyring-daemon* running, before starting your backup or restore. Start it again before running *Dup-composer* again.
+
+## Running GNOME Keyring detached from the user login session
+
+If you want to run scheduled backups with *Dup-composer*, which should also run if the user is not logged in, the methods detailed above won't work. There are some further, more elaborate steps needed to create a GNOME Keyring instance, that is:
+
+- Available even if there is no user logged in.
+- It remains unlocked all the time.
+
+### Installing GNOME Keyring
+
+As for the interactive use on a Linux headless server, GNOME Keyring [has to be installed](#using-dup-composer-with-gnome-keyring-on-a-headless-linux-server) first.
+
+### Add the user that will own the keyring
+
+In case you don't want to store the backup secrets in the keyring of the *root* user for organization purposes, or for other reasons, you can also use the keyring of another user. Probably the best way is to create a user dedicated to owning your backup keyring exclusively:
+
+```
+# adduser backupkr
+```
+
+### Enable user linger
+
+The systemd user instance and the user's services are normally started when the user logs in. However, since we want *gnome-keyring-daemon* to run at all times, we have to enable user linger, so that the user's services are started on boot instead.
+
+```
+# loginctl enable-linger keyringuser
+```
+
+### Create the service unit file for gnome-keyring-daemon
+
+First of all, log in as the user that will be the keyring owner and create the directory, where the user's unit files will be placed:
+
+```
+$ mkdir -p ~/.config/systemd/user
+```
+
+Create a markdown unit file in this directory, give it some meaningful name, like *gnome-keyring.service*. Here is an example of the possible content that works:
+
+```
+[Unit]
+Description=Backup Keyring
+
+[Service]
+Type=forking
+StandardInput=file:/home/keyringuser/.keyring_pp
+ExecStart=/usr/bin/gnome-keyring-daemon --unlock -d
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+```
