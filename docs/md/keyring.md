@@ -1,4 +1,4 @@
-# Keyring integration for dup-composer credential
+# Keyring integration for dup-composer credentials
 
 ## Supported configuration properties
 
@@ -43,6 +43,7 @@ To install on Red Hat / CentOS 8, run:
 ```
 # yum install gnome-keyring
 ```
+### Starting GNOME Keyring in an interactive DBUS session
 
 GNOME Keyring uses DBUS for communication, so Dup-composer has to have access to the DBUS session bus to communicate with the keyring. The official Python *keyring* library documentation [shows how to start](https://pypi.org/project/keyring/#using-keyring-on-headless-linux-systems) a DBUS session bus and GNOME Keyring instance interactively, but you can also see the steps below.
 
@@ -60,9 +61,9 @@ Start the GNOME Keyring:
 # gnome-keyring-daemon --unlock
 ```
 
-In this step you need to provide the passphrase the GNOME Keyring is locked with, then press *Ctrl+D*. On the first launch, the keyring is automatically initialized and it will be locked with passphrase you provide the first time. **Make sure to take a note of the passphrase after the first use as you will need it to unlock the same keyring in the future.**
+In this step you need to provide the passphrase the GNOME Keyring is locked with, then press *Ctrl+D*. On the first launch, the keyring is automatically initialized and it will be locked with the passphrase you provide the first time. **Make sure to take a note of the passphrase after the first use as you will need it to unlock the same keyring in the future.**
 
-After this is done, you can run your backup with Dup-composer, that will read secrets from the keyring as configured.
+After this is done, you can run your backup with Dup-composer, the utility will read secrets from the keyring as configured.
 
 ### Adding your secrets to the keyring
 
@@ -96,23 +97,19 @@ Once the backup is complete, you can close the DBUS session with:
 
 Remember: You have to have the *DBUS session* and *gnome-keyring-daemon* running, before starting your backup or restore. Start it again before running *Dup-composer* again.
 
-## Running GNOME Keyring detached from the user login session
+### Running GNOME Keyring detached from the user login session
 
-If you want to run scheduled backups with *Dup-composer*, which should also run if the user is not logged in, the methods detailed above won't work. There are some further, more elaborate steps needed to create a GNOME Keyring instance, that is:
+If you want to run scheduled backups with *Dup-composer*, which should also run if the user is not logged in, the methods detailed above won't work. There are some further, more elaborate steps needed to create a GNOME Keyring instance, that:
 
-- Available even if there is no user logged in.
-- It remains unlocked all the time.
-
-### Installing GNOME Keyring
-
-As for the interactive use on a Linux headless server, GNOME Keyring [has to be installed](#using-dup-composer-with-gnome-keyring-on-a-headless-linux-server) first.
+- Is available even if there is no user logged in.
+- Remains unlocked all the time.
 
 ### Add the user that will own the keyring
 
-In case you don't want to store the backup secrets in the keyring of the *root* user for organization purposes, or for other reasons, you can also use the keyring of another user. Probably the best way is to create a user dedicated to owning your backup keyring exclusively:
+In case you don't want to store the backup secrets in the keyring of the *root* user for organization purposes, or for other reasons, you can also use the keyring of another user. Probably the best way is to create a user, that is dedicated to own your backup keyring exclusively:
 
 ```
-# adduser backupkr
+# adduser backupkeyringuser
 ```
 
 ### Enable user linger
@@ -120,7 +117,7 @@ In case you don't want to store the backup secrets in the keyring of the *root* 
 The systemd user instance and the user's services are normally started when the user logs in. However, since we want *gnome-keyring-daemon* to run at all times, we have to enable user linger, so that the user's services are started on boot instead.
 
 ```
-# loginctl enable-linger keyringuser
+# loginctl enable-linger backupkeyringuser
 ```
 
 ### Create the service unit file for gnome-keyring-daemon
