@@ -136,10 +136,35 @@ Description=Backup Keyring
 
 [Service]
 Type=forking
-StandardInput=file:/home/keyringuser/.keyring_pp
+StandardInput=file:/home/backupkeyringuser/.keyring_pp
 ExecStart=/usr/bin/gnome-keyring-daemon --unlock -d
 Restart=on-failure
 
 [Install]
 WantedBy=default.target
 ```
+#### Create the input file for the keyring passphrase
+
+As you can see in the unit file above, the `StandardInput` of the service is a file at the path:
+
+```
+/home/backupkeyringuser/.keyring_pp
+```
+
+This is the file used to store the keyring passphrase, that is used to encrypt the keyring when it is persisted and to decrypt (unlock) it when it is opened. The first time GNOME Keyring is started it automatically initializes the keyring.
+
+Before moving on, add your, preferably randomly generated, passphrase string to this file.
+
+#### Set the DBUS_SESSION_BUS_ADDRESS in .bashrc (optional)
+
+The user's session bus address is set through PAM when you do a proper console login. However, since this user will be just just used to own and manage the keyring, you might just want to simply `su - backupkeyringuser` in your primary user's terminal session and in that case, ther user's bus address won't be set automatically, so you need to do it manually, or otherwise you won't be able to use the `systemctl --user` command line or the `keyring` utility, as they won't know the *D-Bus* socket they need to connect to.
+
+If you want set it up for once and for all, you can add this snippet to the `.bashrc` file of *backupkeyringuser*:
+
+```bash
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
+        export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus
+fi
+```
+
+The D-Bus address will be automatically set the next time you change to this user, make sure to use *su* with the hyphen option, that loads the user's environment as well.
