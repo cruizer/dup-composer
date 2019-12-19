@@ -104,7 +104,7 @@ If you want to run scheduled backups with *Dup-composer*, which should also run 
 - Is available even if there is no user logged in.
 - Remains unlocked all the time.
 
-### Add the user that will own the keyring
+#### Add the user that will own the keyring
 
 In case you don't want to store the backup secrets in the keyring of the *root* user for organization purposes, or for other reasons, you can also use the keyring of another user. Probably the best way is to create a user, that is dedicated to own your backup keyring exclusively:
 
@@ -112,7 +112,7 @@ In case you don't want to store the backup secrets in the keyring of the *root* 
 # adduser backupkeyringuser
 ```
 
-### Enable user linger
+#### Enable user linger
 
 The systemd user instance and the user's services are normally started when the user logs in. However, since we want *gnome-keyring-daemon* to run at all times, we have to enable user linger, so that the user's services are started on boot instead.
 
@@ -120,7 +120,7 @@ The systemd user instance and the user's services are normally started when the 
 # loginctl enable-linger backupkeyringuser
 ```
 
-### Create the service unit file for gnome-keyring-daemon
+#### Create the service unit file for gnome-keyring-daemon
 
 First of all, log in as the user that will be the keyring owner and create the directory, where the user's unit files will be placed:
 
@@ -168,3 +168,25 @@ fi
 ```
 
 The D-Bus address will be automatically set the next time you change to this user, make sure to use *su* with the hyphen option, that loads the user's environment as well.
+
+If you are already in a terminal session as the *backupkeyringuser*, you need to source your *.bashrc* file with `. ~/.bashrc` for the change to take effect in your current session.
+
+#### Enable the service
+
+You need to enable the service, so that it is started on boot:
+
+```
+systemctl --user enable gnome-keyring.service
+```
+
+#### Reboot and service status verification
+
+After the configuration steps above have been completed, and the service is enabled, you should reboot the system and check if the keyring service is up after that. Switch to the *backupkeyringuser* in the shell with `su - backupkeyringuser` and run:
+
+```
+systemctl --user status gnome-keyring.service
+```
+
+The service state should show as *active (running)*. Of course if you don't want the service to run at all times, you can *disable* it and only *start* it when needed. Just make sure the service is running before executing *Dup-composer* backups if you use the keyring.
+
+Now that the keyring is ready to use, you can go ahead and [add your credentials to the keyring](#adding-your-secrets-to-the-keyring).
