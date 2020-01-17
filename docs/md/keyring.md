@@ -190,3 +190,25 @@ systemctl --user status gnome-keyring.service
 The service state should show as *active (running)*. Of course if you don't want the service to run at all times, you can *disable* it and only *start* it when needed. Just make sure the service is running before executing *Dup-composer* backups if you use the keyring.
 
 Now that the keyring is ready to use, you can go ahead and [add your credentials to the keyring](#adding-your-secrets-to-the-keyring).
+
+## Specifying a custom user and bus address for a backup group
+
+In some cases where your environment requires it, for example you have used the above process to create a keyring owned by a user different from the one used for executing *Dup-composer*, you might want to specify the user who owns the keyring and the DBUS address used for accessing this keyring. This will cause *Dup-composer* to:
+
+- Change the effective UID of the process to the UID of the username provided, while the credentials are read from the given keyring.
+- Use the socket path configured, instead of using the `DBUS_SESSION_BUS_ADDRESS` environment variable.
+
+This will command *Dup-composer* to access the keyring as the given user, communicating with the keyring on the given DBUS address.
+
+Example:
+
+```yaml
+backup_groups:
+  aws_s3_backup:
+    keyring:
+      username: keyringowner
+      bus_address: /run/user/1002/bus
+   ...
+```
+
+This configuration is per group, so you can use different parameters for different backup groups.
