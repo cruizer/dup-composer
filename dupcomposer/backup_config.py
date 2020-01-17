@@ -13,7 +13,7 @@ BackupSource: Backup/restore path options.
 BackupFilePrefixes: Handle the file prefixing for backup files.
 """
 import re
-from dupcomposer import keyring_helper
+from dupcomposer import backup_keyring
 
 class BackupConfig:
     """Generate the backup groups from the config data and store them.
@@ -43,6 +43,7 @@ class BackupGroup:
     def __init__(self, group_data, group_name):
         self.group_data = group_data
         self.name = group_name
+        self._keyring = None
         self.mandatory_datakeys = ['encryption',
                                    'backup_provider',
                                    'sources',
@@ -52,12 +53,27 @@ class BackupGroup:
             if i not in self.group_data:
                 raise KeyError('Invalid backup group configuration data')
 
-        # Set up composition objects.
-        self.encryption = BackupEncryption(group_data['encryption'])
-        self.provider = BackupProvider.factory(group_data['backup_provider'])
+        self.encryption = BackupEncryption(group_data['encryption'], self)
+        self.provider = BackupProvider.factory(group_data['backup_provider'], self)
         self._setup_prefixes()
         self._setup_sources()
         self.volsize = group_data['volume_size']
+
+
+    @property
+    def keyring(self):
+        if not self._keyring:
+            self._build_keyring()
+        return self._keyring
+
+
+    def _build_keyring(self):
+        config = self.group_data.get('keyring', None)
+        if config:
+            self._keyring = backup_keyring.BackupKeyring(kr_config.get('username', None),
+                                                        kr_config.get('bus_address', None))
+        else:
+            self._keyring = backup_keyring.BackupKeyring()        
 
     def get_opts_raw(self, mode):
         """Get the Duplicity command line options for all sources.
@@ -107,8 +123,13 @@ class BackupEncryption:
 
     :param encryption_data: The raw configuration for the encryption.
     :type encryption_data: dict
+
+    :param backup_group: The backup configuration group object.
+    :type backup_group: BackupGroup
     """
-    def __init__(self, encryption_data):
+    def __init__(self, encryption_data, backup_group=None):
+
+        self.backup_group = backup_group
         self._set_enabled_flag(encryption_data)
         self._set_gpg_params(encryption_data)
         
@@ -176,8 +197,9 @@ class BackupEncryption:
         """
         if isinstance(pp_config, str):
             self.gpg_passphrase = pp_config
-        elif isinstance(pp_config, list) and len(pp_config) == 2:
-            self.gpg_passphrase = keyring_helper.get_secret(pp_config)
+        elif isinstance(pp_config, list) and len(pp_config) == 2 \
+             and hasattr(self.backup_group, 'keyring'):
+            self.gpg_passphrase = self.backup_group.keyring.get_secret(pp_config)
         else:
             raise ValueError('Unable to get/set '
                              'passphrase with data: %s' % pp_config)
@@ -190,16 +212,21 @@ class BackupProvider:
 
     :param provider_data: Raw provider data.
     :type provider_data: dict
+    :param backup_group: Group config object.
+    :type backup_group: BackupGroup
     """
-    def __init__(self, provider_data):
+    def __init__(self, provider_data, backup_group=None):
         self.url = provider_data['url']
+        self.backup_group = backup_group
 
     @classmethod
-    def factory(cls, provider_data):
+    def factory(cls, provider_data, backup_group=None):
         """Generate the appropriate provider subclass.
 
         :param provider_data: Raw provider data.
         :type provider_data: dict
+        :param backup_group: Group config object
+        :type keyring_provider: BackupGroup
         :raises KeyError: if the key 'url' is missing from provider_data
         :raises ValueError: if the URL scheme is not recognized.
         :return: The appropriate provider subclass.
@@ -211,9 +238,9 @@ class BackupProvider:
         if re.search('^file://.*', url):
             return BackupProviderLocal(provider_data)
         elif re.search('^s3://.*', url):
-            return BackupProviderS3(provider_data)
+            return BackupProviderS3(provider_data, backup_group)
         elif re.search('^scp://.*', url):
-            return BackupProviderSCP(provider_data)
+            return BackupProviderSCP(provider_data, backup_group)
         else:
             raise ValueError("URL {} is not recognized.".format(url))
 
@@ -246,8 +273,9 @@ class BackupProvider:
         if isinstance(secret_def, str):
             return secret_def
         # We read the secret from the keyring
-        elif isinstance(secret_def, list) and len(secret_def) == 2:
-            return keyring_helper.get_secret(secret_def)
+        elif isinstance(secret_def, list) and len(secret_def) == 2 \
+             and hasattr(self.backup_group, 'keyring'):
+            return self.backup_group.keyring.get_secret(secret_def)
         else:
             raise ValueError('Invalid secret configuration: %s' % secret_def)
 
@@ -274,9 +302,11 @@ class BackupProviderS3(BackupProvider):
 
     :param provider_data: Raw provider data.
     :type provider_data: dict
+    :param backup_group: Group config object
+    :type backup_group: BackupGroup
     """
-    def __init__(self, provider_data):
-        super().__init__(provider_data)
+    def __init__(self, provider_data, backup_group):
+        super().__init__(provider_data, backup_group)
         self.access_key = provider_data['aws_access_key']
         self.secret_key = self._load_secret(provider_data['aws_secret_key'])
 
@@ -296,6 +326,7 @@ class BackupProviderS3(BackupProvider):
         return '/'.join([self.url.rstrip('/'),
                          path.lstrip('/')])
 
+
     def get_env(self):
         """Get the shell env. variables for AWS S3
 
@@ -310,9 +341,11 @@ class BackupProviderSCP(BackupProvider):
 
     :param provider_data: Raw provider data.
     :type provider_data: dict
+    :param backup_group: Group config object
+    :type backup_group: BackupGroup
     """
-    def __init__(self, provider_data):
-        super().__init__(provider_data)
+    def __init__(self, provider_data, backup_group):
+        super().__init__(provider_data, backup_group)
         self.password = provider_data.get('password', None)
         # If we have password data, we need to run it through the loader
         if self.password:

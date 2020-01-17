@@ -1,6 +1,7 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from dupcomposer.dupcomposer import read_config
+from dupcomposer import backup_keyring
 from dupcomposer.backup_config import (BackupConfig, BackupGroup,
                                        BackupEncryption, BackupProvider,
                                        BackupProviderLocal, BackupProviderS3,
@@ -12,8 +13,9 @@ class TestBackupConfig(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.config_data = read_config('tests/fixtures/dupcomposer-config.yml')
-        
-    def setUp(self):
+
+    @patch('dupcomposer.backup_keyring.BackupKeyring')
+    def setUp(self, mock_keyring):
         self.backup_config = BackupConfig(self.config_data)
         
     def test_object_instance(self):
@@ -35,15 +37,30 @@ class TestBackupGroup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.config_data = read_config('tests/fixtures/dupcomposer-config.yml')
+        cls.config_with_keyring = \
+            {'encryption':
+             {'enabled': False},
+             'backup_provider': {'url': 'scp://myscpuser@host.example.com/',
+                                 'password': ['service', 'account']},
+             'volume_size': 200,
+             'sources': {'/home/fun':
+                         {'backup_path': '/home/fun', 'restore_path': '/root/restored'}}
+            }
         cls.backup_groups = {}
 
-    def setUp(self):
+
+    @patch('dupcomposer.backup_keyring.BackupKeyring', spec=backup_keyring.BackupKeyring)
+    def setUp(self, mock_keyring):
+        mock_keyring.get_secret.return_value = 'mypassword'
         self.backup_groups['my_local_backups'] = \
             BackupGroup(self.config_data['backup_groups']['my_local_backups'], 'my_local_backups')
         self.backup_groups['my_s3_backups'] = \
             BackupGroup(self.config_data['backup_groups']['my_s3_backups'], 'my_s3_backups')
         self.backup_groups['my_scp_backups'] = \
             BackupGroup(self.config_data['backup_groups']['my_scp_backups'], 'my_scp_backups')
+        self.backup_groups['backup_with_keyring'] = \
+            BackupGroup(self.config_with_keyring, 'backup_with_keyring')
+
 
     def test_name(self):
         self.assertEqual(self.backup_groups['my_local_backups'].name, 'my_local_backups')
@@ -78,6 +95,12 @@ class TestBackupGroup(unittest.TestCase):
         self.assertIsInstance(self.backup_groups['my_s3_backups'].encryption, BackupEncryption)
         self.assertIsInstance(self.backup_groups['my_local_backups'].encryption, BackupEncryption)
         self.assertIsInstance(self.backup_groups['my_scp_backups'].encryption, BackupEncryption)
+
+
+    def test_keyring_instance(self):
+        self.assertIsInstance(self.backup_groups['backup_with_keyring'].keyring,
+                              backup_keyring.BackupKeyring)
+        self.assertEqual(self.backup_groups['my_s3_backups']._keyring, None)
 
     def test_provider_instance(self):
         self.assertIsInstance(self.backup_groups['my_s3_backups'].provider, BackupProvider)
@@ -185,24 +208,36 @@ class TestBackupEncryption(unittest.TestCase):
         cls.config_with_keyring_invalid = {'enabled': True, 'gpg_key': 'xxx',
                                            'gpg_passphrase': [1, 2, 3]}
     def setUp(self):
-        self.backup_encryption_off = BackupEncryption(self.config_encryption_off)
-        self.backup_encryption_on = BackupEncryption(self.config_encryption_on)
+        self.backup_encryption_off = BackupEncryption(self.config_encryption_off, MagicMock())
+        self.backup_encryption_on = BackupEncryption(self.config_encryption_on, MagicMock())
 
-    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
-    def test_keyring_read(self, mock_krhelper):
-        mock_krhelper.get_secret.return_value = 'mypassphrase'
-        self.backup_enc_on_keyring = BackupEncryption(self.config_with_keyring)
-        self.assertEqual(list(mock_krhelper.get_secret.call_args[0][0]),
+
+    def test_keyring_read(self):
+        backup_group = MagicMock()
+        backup_group.keyring.get_secret.return_value = 'mypassphrase'
+        self.backup_enc_on_keyring = BackupEncryption(self.config_with_keyring,
+                                                      backup_group)
+        self.assertEqual(list(backup_group.keyring.get_secret.call_args[0][0]),
                          ['service', 'account'])
         self.assertEqual(self.backup_enc_on_keyring.gpg_passphrase,
                          'mypassphrase')
 
 
-    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
-    def test_keyring_read_invalid(self, mock_krhelper):
+    def test_keyring_read_invalid(self):
+        backup_group = MagicMock()
         self.assertRaises(ValueError,
                           BackupEncryption,
-                          self.config_with_keyring_invalid)
+                          self.config_with_keyring_invalid,
+                          backup_group)
+        backup_group.keyring.get_secret.assert_not_called()
+
+
+    def test_keyring_read_no_backup_group(self):
+        self.assertRaises(ValueError,
+                          BackupEncryption,
+                          self.config_with_keyring,
+                          None)
+
 
     def test_enabled_flag(self):
         self.assertIs(self.backup_encryption_off.enabled, False)
@@ -217,17 +252,20 @@ class TestBackupEncryption(unittest.TestCase):
     def test_incorrect_enabled_flag(self):
         self.assertRaises(ValueError,
                           BackupEncryption,
-                          {'enabled': 'chocolate'})
+                          {'enabled': 'chocolate'},
+                          None)
 
     def test_missing_key_or_passphrase(self):
         self.assertRaises(ValueError,
                           BackupEncryption,
                           {'enabled': True,
-                           'gpg_key': 'xxxxxx'})
+                           'gpg_key': 'xxxxxx'},
+                          None)
         self.assertRaises(ValueError,
                           BackupEncryption,
                           {'enabled': True,
-                           'gpg_passphrase': 'xxxxxx'})
+                           'gpg_passphrase': 'xxxxxx'},
+                          None)
 
     def test_cmd_output_enc_on(self):
         self.assertEqual(self.backup_encryption_on.get_cmd(),
@@ -262,8 +300,8 @@ class TestBackupProvider(unittest.TestCase):
 
     def setUp(self):
         self.backup_local = BackupProvider.factory(self.config_provider_local)
-        self.backup_s3 = BackupProvider.factory(self.config_provider_s3)
-        self.backup_scp = BackupProvider.factory(self.config_provider_scp)
+        self.backup_s3 = BackupProvider.factory(self.config_provider_s3, MagicMock())
+        self.backup_scp = BackupProvider.factory(self.config_provider_scp, MagicMock())
 
     def test_provider_instances(self):
         self.assertIsInstance(self.backup_local, BackupProviderLocal)
@@ -322,24 +360,37 @@ class TestBackupProviderS3(unittest.TestCase):
         self.assertEqual(self.backup_s3.get_env(), {'AWS_ACCESS_KEY': 'xxxxxx',
                                                     'AWS_SECRET_KEY': 'xxxxxx'})
 
-    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
-    def test_get_env_from_keyring(self, mock_krhelper):
-        mock_krhelper.get_secret.return_value = 'mysecretkey'
+
+    def test_get_env_from_keyring(self):
+        backup_group = MagicMock()
+        backup_group.keyring.get_secret.return_value = 'mysecretkey'
         provider = BackupProvider.factory({'url': 's3://dummybucket.s3.example.com/test',
                                           'aws_access_key': 'xxxxxx',
-                                          'aws_secret_key': ['aws', 'account']})
+                                           'aws_secret_key': ['aws', 'account']},
+                                          backup_group)
         self.assertEqual(provider.get_env(), {'AWS_ACCESS_KEY': 'xxxxxx',
                                               'AWS_SECRET_KEY': 'mysecretkey'})
-        mock_krhelper.get_secret.assert_called_once_with(['aws', 'account'])
+        backup_group.keyring.get_secret.assert_called_once_with(['aws', 'account'])
 
 
-    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
-    def test_instantiate_wrong_secret(self, mock_krhelper):
+    def test_instantiate_wrong_secret(self):
+        backup_keyring = MagicMock()
         self.assertRaises(ValueError,
                           BackupProvider.factory,
                           {'url': 's3://dummybucket.s3.example.com/test',
                            'aws_access_key': 'xxxxxx',
-                           'aws_secret_key': [1, 2, 3]})
+                           'aws_secret_key': [1, 2, 3]},
+                          backup_keyring)
+        backup_keyring.get_secret.assert_not_called()
+
+
+    def test_missing_keyring(self):
+        self.assertRaises(ValueError,
+                          BackupProvider.factory,
+                          {'url': 's3://dummybucket.s3.example.com/test',
+                           'aws_access_key': 'xxxxxx',
+                           'aws_secret_key': ['aws', 'account']},
+                          None)
 
 
     def test_missing_keys(self):
@@ -379,13 +430,32 @@ class TestBackupProviderSCP(unittest.TestCase):
         self.assertEqual(self.backup_scp_nopass.get_env(), {})
 
 
-    @patch('dupcomposer.backup_config.keyring_helper', spec=['get_secret'])
-    def test_get_env_from_keyring(self, mock_krhelper):
-        mock_krhelper.get_secret.return_value = 'mykeyringpassword'
+    def test_get_env_from_keyring(self):
+        backup_group = MagicMock()
+        backup_group.keyring.get_secret.return_value = 'mykeyringpassword'
         provider = BackupProvider.factory({'url': 'scp://myscpuser@host.exp.com/test',
-                                           'password': ['scpserver', 'myscpuser']})
+                                           'password': ['scpserver', 'myscpuser']},
+                                          backup_group)
         self.assertEqual(provider.get_env(), {'FTP_PASSWORD': 'mykeyringpassword'})
-        mock_krhelper.get_secret.assert_called_once_with(['scpserver', 'myscpuser'])
+        backup_group.keyring.get_secret.assert_called_once_with(['scpserver', 'myscpuser'])
+
+
+    def test_instantiate_wrong_secret(self):
+        backup_keyring = MagicMock()
+        self.assertRaises(ValueError,
+                          BackupProvider.factory,
+                          {'url': 'scp://myscpuser@host.exp.com/test',
+                           'password': [1, 2, 3]},
+                          backup_keyring)
+        backup_keyring.get_secret.assert_not_called()
+
+
+    def test_missing_keyring(self):
+        self.assertRaises(ValueError,
+                          BackupProvider.factory,
+                          {'url': 'scp://myscpuser@host.exp.com/test',
+                           'password': ['scpserver', 'myscpuser']},
+                          None)
 
 
 class TestBackupSource(unittest.TestCase):

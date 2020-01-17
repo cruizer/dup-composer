@@ -1,0 +1,15 @@
+backup_groups:
+  krhost:
+    encryption:
+      enabled: no
+    backup_provider:
+      url: scp://backup@192.168.56.102/
+      password: ['vbox', 'backup']
+    volume_size: 200
+    sources:
+      /etc:
+        backup_path: /home/backup/krhost.bak
+        restore_path: /root/restore/etc
+      /var/lib:
+        backup_path: /home/backup/krhost.bak
+        restore_path: /root/restore/lib
