@@ -1,5 +1,5 @@
 import unittest
-from dupcomposer.dupcomposer import read_config, BackupRunner
+from dupcomposer.backup_runner import read_config, BackupRunner
 from dupcomposer.backup_config import BackupConfig
 
 class TestBackupRunner(unittest.TestCase):

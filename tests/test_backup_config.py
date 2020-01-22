@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from dupcomposer.dupcomposer import read_config
+from dupcomposer.backup_runner import read_config
 from dupcomposer import backup_keyring
 from dupcomposer.backup_config import (BackupConfig, BackupGroup,
                                        BackupEncryption, BackupProvider,

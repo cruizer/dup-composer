@@ -12,10 +12,11 @@ class TestCLI(unittest.TestCase):
         # dupcomp.py was called from.
         cls.workdir_original = os.getcwd()
         os.chdir('./tests/fixtures')
+        cls.console_script = '../../dupcomp'
         cls.test_data = {
             'backup_example_complete':
                      {'config_file': 'dupcomposer-config.yml',
-                      'command': ['python3', '../../dupcomp.py', 'backup'],
+                      'command': ['python3', cls.console_script, 'backup'],
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
                                   'file:///root/backups/var/www/html'],
@@ -44,7 +45,7 @@ class TestCLI(unittest.TestCase):
                                           {'FTP_PASSWORD': 'xxxxxx'}]}},
             'backup_example_specgroups':
                      {'config_file': 'dupcomposer-config.yml',
-                      'command': ['python3', '../../dupcomp.py',
+                      'command': ['python3', cls.console_script,
                                   'backup', 'my_local_backups', 'my_s3_backups'],
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
@@ -69,7 +70,7 @@ class TestCLI(unittest.TestCase):
                                   {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'}]}},
             'backup_scpurl_fix':
                      {'config_file': 'dupcomposer-config-scpurl.yml',
-                      'command': ['python3', '../../dupcomp.py', '-c',
+                      'command': ['python3', cls.console_script, '-c',
                                   'dupcomposer-config-scpurl.yml', 'backup'],
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
@@ -198,7 +199,7 @@ class TestCLI(unittest.TestCase):
 
     def _get_cmd_out(self, args):
         """Execute dupcomp with the provided args and return the output."""
-        cmd = ['python3', '../../dupcomp.py']
+        cmd = ['python3', self.console_script]
         cmd.extend(args)
         proc = subprocess.Popen(cmd, universal_newlines=True,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
