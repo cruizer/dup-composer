@@ -59,7 +59,7 @@ class BackupKeyring:
             mode = os.stat(socket_address).st_mode
             if stat.S_ISSOCK(mode) == False:
                 raise OSError('Path %s is not a socket.' % socket_address)
-            self.bus = socket_address
+            self.bus = '='.join(['unix:path',socket_address])
         else:
             self.bus = BackupKeyring.runuser_bus
 
