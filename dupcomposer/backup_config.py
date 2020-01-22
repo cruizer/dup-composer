@@ -70,8 +70,8 @@ class BackupGroup:
     def _build_keyring(self):
         config = self.group_data.get('keyring', None)
         if config:
-            self._keyring = backup_keyring.BackupKeyring(kr_config.get('username', None),
-                                                        kr_config.get('bus_address', None))
+            self._keyring = backup_keyring.BackupKeyring(config.get('username', None),
+                                                        config.get('bus_address', None))
         else:
             self._keyring = backup_keyring.BackupKeyring()        
 
