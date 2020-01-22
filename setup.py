@@ -6,7 +6,7 @@ README_TEXT = (PARENT_DIR / 'README.md').read_text()
 
 setup(
     name='dup-composer',
-    version='0.1.1',
+    version='0.1.2',
     description='Dup-composer is a front-end script for Duplicity, that lets you define your backups in a configuration file and execute them in a simple way.',
     long_description=README_TEXT,
     long_description_content_type='text/markdown',
@@ -22,6 +22,6 @@ setup(
     packages=['dupcomposer'],
     include_package_data=False,
     install_requires=['keyring>=19.2.0', 'SecretStorage>=3.1.1',
-                      'PyYAML>=5.1', 'duplicity>=0.7'],
+                      'PyYAML>=5.1'],
     entry_points={'console_scripts': ['dupcomp=dupcomposer.__init__.main']}
 )
