@@ -75,7 +75,15 @@ class TestCLI(unittest.TestCase):
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
                                    'scp://user@myhost.example.com//home/bkup']],
-                                 'envs': [{'FTP_PASSWORD': 'yyyyyy'}]}}
+                                 'envs': [{'FTP_PASSWORD': 'yyyyyy'}]}},
+            'backup_sftp':
+                     {'config_file': 'dupcomposer-config-sftp.yml',
+                      'command': ['python3', cls.console_script, '-c',
+                                  'dupcomposer-config-sftp.yml', 'backup'],
+                      'result': {'args':
+                                 [['--no-encryption', '--volsize', '200', '/var/www/html',
+                                   'sftp://sftpuser@myhost.example.com//home/bkup']],
+                                 'envs': [{'FTP_PASSWORD': 'xxxxxx'}]}}
         }
         #cls.dummy_outfile = '../temp/dummy-out.json'
         cls.dummy_outfile = '/tmp/' + str(uuid.uuid4()) + '.json'
@@ -111,6 +119,9 @@ class TestCLI(unittest.TestCase):
     def test_scp_missing_trailing_backslash(self):
         self.assertEqual(self._get_duplicity_results('backup_scpurl_fix'),
                          self.test_data['backup_scpurl_fix']['result'])
+    def test_sftp(self):
+        self.assertEqual(self._get_duplicity_results('backup_sftp'),
+                         self.test_data['backup_sftp']['result'])
 
     def test_dry(self):
         expected = ('Generating commands for group my_local_backups:\n\n'

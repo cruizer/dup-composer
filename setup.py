@@ -6,7 +6,7 @@ README_TEXT = (PARENT_DIR / 'README.md').read_text()
 
 setup(
     name='dup-composer',
-    version='0.1.6',
+    version='0.2.6',
     description='Dup-composer is a front-end script for Duplicity, that lets you define your backups in a configuration file and execute them in a simple way.',
     long_description=README_TEXT,
     long_description_content_type='text/markdown',

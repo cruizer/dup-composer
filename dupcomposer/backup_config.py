@@ -8,7 +8,7 @@ BackupEncryption: Handle the backup GPG encryption options.
 BackupProvider: Abstract class and factory for the following classes:
     BackupProviderLocal: Local file system target options.
     BackupProviderS3: S3 bucket target options.
-    BackupProviderSCP: SCP target options.
+    BackupProviderSSH: SFTP/SCP target options.
 BackupSource: Backup/restore path options.
 BackupFilePrefixes: Handle the file prefixing for backup files.
 """
@@ -228,7 +228,7 @@ class BackupProvider:
         :raises ValueError: if the URL scheme is not recognized.
         :return: The appropriate provider subclass.
         :rtype: :class:`BackupProviderLocal`, :class:`BackupProviderS3`,
-                :class:`BackupProviderSCP`
+                :class:`BackupProviderSSH`
         """
         url = provider_data['url']
         
@@ -236,8 +236,8 @@ class BackupProvider:
             return BackupProviderLocal(provider_data)
         elif re.search('^s3://.*', url):
             return BackupProviderS3(provider_data, backup_group)
-        elif re.search('^scp://.*', url):
-            return BackupProviderSCP(provider_data, backup_group)
+        elif re.search('^scp://.*', url) or re.search('^sftp://.*', url):
+            return BackupProviderSSH(provider_data, backup_group)
         else:
             raise ValueError("URL {} is not recognized.".format(url))
 
@@ -333,8 +333,8 @@ class BackupProviderS3(BackupProvider):
         return {'AWS_ACCESS_KEY': self.access_key,
                 'AWS_SECRET_KEY': self.secret_key}
 
-class BackupProviderSCP(BackupProvider):
-    """SCP backup target provider.
+class BackupProviderSSH(BackupProvider):
+    """SFTP/SCP backup target provider.
 
     :param provider_data: Raw provider data.
     :type provider_data: dict
@@ -369,7 +369,7 @@ class BackupSource:
     :type config: dict
     :param provider: The URL scheme target to backup to / restore from.
     :type provider: class:`BackupProviderLocal`, class:`BackupProviderS3`,
-                    class:`BackupProviderSCP`
+                    class:`BackupProviderSSH`
     :raises ValueError: if the source or backup path is empty.
     """
     def __init__(self, source_path, config, provider):

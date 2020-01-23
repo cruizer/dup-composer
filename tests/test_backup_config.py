@@ -5,7 +5,7 @@ from dupcomposer import backup_keyring
 from dupcomposer.backup_config import (BackupConfig, BackupGroup,
                                        BackupEncryption, BackupProvider,
                                        BackupProviderLocal, BackupProviderS3,
-                                       BackupProviderSCP, BackupSource,
+                                       BackupProviderSSH, BackupSource,
                                        BackupFilePrefixes)
 
 class TestBackupConfig(unittest.TestCase):
@@ -297,16 +297,20 @@ class TestBackupProvider(unittest.TestCase):
         cls.config_provider_scp = (cls.config_data['backup_groups']
                                                    ['my_scp_backups']
                                                    ['backup_provider'])
+        cls.config_provider_sftp = {'url': 'sftp://mysftpuser@host.dupexample.com',
+                                    'password': '12345'}
 
     def setUp(self):
         self.backup_local = BackupProvider.factory(self.config_provider_local)
         self.backup_s3 = BackupProvider.factory(self.config_provider_s3, MagicMock())
         self.backup_scp = BackupProvider.factory(self.config_provider_scp, MagicMock())
+        self.backup_sftp = BackupProvider.factory(self.config_provider_sftp, MagicMock())
 
     def test_provider_instances(self):
         self.assertIsInstance(self.backup_local, BackupProviderLocal)
         self.assertIsInstance(self.backup_s3, BackupProviderS3)
-        self.assertIsInstance(self.backup_scp, BackupProviderSCP)
+        self.assertIsInstance(self.backup_scp, BackupProviderSSH)
+        self.assertIsInstance(self.backup_sftp, BackupProviderSSH)
 
     def test_missing_url(self):
         self.assertRaises(KeyError,
@@ -404,7 +408,7 @@ class TestBackupProviderS3(unittest.TestCase):
                            'aws_secret_key': 'xxxxxx'})
 
         
-class TestBackupProviderSCP(unittest.TestCase):
+class TestBackupProviderSSH(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -414,20 +418,26 @@ class TestBackupProviderSCP(unittest.TestCase):
                                                    ['backup_provider'])
         cls.config_provider_scp_nopass = cls.config_provider_scp.copy()
         del cls.config_provider_scp_nopass['password']
+        cls.config_provider_sftp = {'url': 'sftp://sftpuser@host.dupexample.com/',
+                                    'password': 'xxxxxx'}
 
     def setUp(self):
         self.backup_scp = BackupProvider.factory(self.config_provider_scp)
         self.backup_scp_nopass = BackupProvider.factory(self.config_provider_scp_nopass)
+        self.backup_sftp = BackupProvider.factory(self.config_provider_sftp)
 
     def test_get_cmd(self):
         self.assertEqual(self.backup_scp.get_cmd('/home/test/'),
                          'scp://myscpuser@host.example.com//home/test/')
         self.assertEqual(self.backup_scp.get_cmd('home/test'),
                          'scp://myscpuser@host.example.com/home/test')
+        self.assertEqual(self.backup_sftp.get_cmd('/home/test'),
+                         'sftp://sftpuser@host.dupexample.com//home/test')
 
     def test_get_env(self):
         self.assertEqual(self.backup_scp.get_env(), {'FTP_PASSWORD': 'xxxxxx'})
         self.assertEqual(self.backup_scp_nopass.get_env(), {})
+        self.assertEqual(self.backup_sftp.get_env(), {'FTP_PASSWORD': 'xxxxxx'})
 
 
     def test_get_env_from_keyring(self):
