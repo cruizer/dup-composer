@@ -12,12 +12,13 @@ class BackupKeyring:
     when reading secrets, but this can be overridded with a special
     configuration when instantiating BackupKeyring.
 
-    :param user: The name of the keyring's user, we will read from.
-    : type user: str
+    :param username: The name of the keyring's user, we will read from.
+    :type username: str
 
-    :param bus: The socket path used to communicate with DBUS the
+    :param bus_address: The socket path used to communicate with DBUS the
                 keyring is listening on. This parameter is MANDATORY
                 when a username is provided upon instantiation.
+    :type bus_address: str
     """
     # The UID of the user running the script,
     runuser_id = os.geteuid()
@@ -29,13 +30,13 @@ class BackupKeyring:
         keyring.set_keyring(keyring.backends.SecretService.Keyring())
 
 
-    def __init__(self, user=None, bus=None):
+    def __init__(self, username=None, bus_address=None):
         self.uid = None
         self.bus = None
-        if user and not bus:
-            raise ValueError('No bus provided for %s.' % user)
-        self._init_special_user(user)
-        self._init_special_socket(bus)
+        if username and not bus_address:
+            raise ValueError('No bus provided for %s.' % username)
+        self._init_special_user(username)
+        self._init_special_socket(bus_address)
         if not self.bus:
             raise ValueError('Mission DBUS address! Please check the '
                              'DBUS_SESSION_BUS_ADDRESS environment '

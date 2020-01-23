@@ -68,12 +68,9 @@ class BackupGroup:
 
 
     def _build_keyring(self):
-        config = self.group_data.get('keyring', None)
-        if config:
-            self._keyring = backup_keyring.BackupKeyring(config.get('username', None),
-                                                        config.get('bus_address', None))
-        else:
-            self._keyring = backup_keyring.BackupKeyring()        
+        config = self.group_data.get('keyring', {})
+        self._keyring = backup_keyring.BackupKeyring(**config)
+
 
     def get_opts_raw(self, mode):
         """Get the Duplicity command line options for all sources.
