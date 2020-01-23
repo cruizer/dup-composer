@@ -17,7 +17,7 @@ class TestBackupKeyring(unittest.TestCase):
     def setUpClass(cls):
         # Mock runner user  (whoever runs the tool)
         cls.dummy_runuser_id = 9003
-        cls.dummy_runuser_bus = '/run/user/9003/bus'
+        cls.dummy_runuser_bus = 'unix:path=/run/user/9003/bus'
         # Mock the user configured in the config file
         cls.config_username = 'mytestuser'
         cls.config_uid = 9000
@@ -90,13 +90,13 @@ class TestBackupKeyring(unittest.TestCase):
         kr = backup_keyring.BackupKeyring(self.config_username, self.socket_path)
 
         self.assertEqual(kr.uid, self.config_uid)
-        self.assertEqual(kr.bus, self.socket_path)
+        self.assertEqual(kr.bus, '='.join(['unix:path', self.socket_path]))
 
     def test_instantiation_socket_only(self):
         kr = backup_keyring.BackupKeyring(None, self.socket_path)
 
         self.assertEqual(kr.uid, self.dummy_runuser_id)
-        self.assertEqual(kr.bus, self.socket_path)
+        self.assertEqual(kr.bus, '='.join(['unix:path', self.socket_path]))
 
     @patch('pwd.getpwnam')
     def test_instantiation_user_only_error(self, getpwnam):
@@ -153,5 +153,6 @@ class TestBackupKeyring(unittest.TestCase):
         self.assertEqual(seteuid.call_args_list,
                          [call(self.config_uid), call(self.dummy_runuser_id)])
         self.assertEqual(environ.__setitem__.call_args_list,
-                         [call('DBUS_SESSION_BUS_ADDRESS', self.socket_path),
+                         [call('DBUS_SESSION_BUS_ADDRESS', '='.join(['unix:path',
+                                                                     self.socket_path])),
                           call('DBUS_SESSION_BUS_ADDRESS', self.dummy_runuser_bus)])
