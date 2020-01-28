@@ -88,7 +88,7 @@ encryption:
 
 If the `enabled` node is set to `no`, encryption is disabled, there is no need to configure the `gpg_key` and `gpg_passphrase` nodes. When encryption is enabled however, they are mandatory. This key will be used both for signing and encrypting the backup data.
 
-**Keyring support:** The value of `gpg_passphrase` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the passphrase in the following format: `gpg_passphrase: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
+**Keyring support:** The value of `gpg_passphrase` can also be read from a keyring. See the [keyring support document](https://github.com/cruizer/dup-composer/blob/master/docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the passphrase in the following format: `gpg_passphrase: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
 
 ### Backup provider
 
@@ -113,7 +113,7 @@ In this case, you need to specify the username of the remote *SFTP* host in the 
 
 You can use *SCP* the same way, but use the `scp://` protocol in the URL instead of `sftp://`.
 
-**Keyring support:** The value of `password` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the password in the following format: `password: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
+**Keyring support:** The value of `password` can also be read from a keyring. See the [keyring support document](https://github.com/cruizer/dup-composer/blob/master/docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the password in the following format: `password: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
 
 Finally, you have to configure **AWS S3** like this:
 
@@ -126,7 +126,7 @@ backup_provider:
 
 The S3 bucket URL is configured as the `url` node value, while `aws_access_key` and `aws_secret_key` need to contain your *AWS* generated keys for the bucket. Like with the rest of the providers, the actual path, folder, within the bucket shouldn't be added to the URL.
 
-**Keyring support:** The value of `aws_secret_key` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the secret key in the following format: `aws_secret_key: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
+**Keyring support:** The value of `aws_secret_key` can also be read from a keyring. See the [keyring support document](https://github.com/cruizer/dup-composer/blob/master/docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the secret key in the following format: `aws_secret_key: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
 
 ### Backup file prefixes
 
