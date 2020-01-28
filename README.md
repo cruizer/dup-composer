@@ -207,12 +207,15 @@ backup_groups:
       /home/shared:
         backup_path: /home/shared
         restore_path: /root/restored/home/shared
-  my_sftp_backups:
+  my_sftp_backups_with_keyring:
     encryption:
       enabled: no
     backup_provider:
-      url: sftp://myscpuser@host.example.com/
-      password: xxxxxx
+      url: sftp://myscpuser@backuphost1.example.com/
+      password: ['backuphost1', 'myscpuser']
+    keyring:
+      username: keyringuser
+      bus_address: /run/user/1003/bus
     volume_size: 200
     sources:
       /home/fun:
