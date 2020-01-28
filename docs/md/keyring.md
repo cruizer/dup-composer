@@ -10,20 +10,25 @@ Currently, you can have *Dup-composer* read the following credentials from the k
 
 ## Keyring interoperability
 
-*Dup-composer* uses the Python [keyring](https://pypi.org/project/keyring/) library to interface with various keyring backends. Since the library API abstracts the backend implementations, you should be able to use all the ones supported by *keyring* as long as you take care of the backend being accessible.
+*Dup-composer* uses the Python [keyring](https://pypi.org/project/keyring/) library to interface with the keyring backend. The *keyring* library can handle various backends, but *Dup-composer* only supports the *SecretService* backend at the moment. This means, that you can use the following keyring implementations:
 
-The *Dup-composer* recommended backend to use is [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring), so additional help and documentation is provided to set it up (see below).
+- GNOME Keyring (version 2.30+)
+- KSecretsService (KDE keyring)
+
+The *Dup-composer* recommended implementation to use is [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring), so additional help and documentation is provided to set it up (see below).
 
 The following dependency versions should work with *Dup-composer* as of now:
 
-- keyring 19.2.0
-- SecretStorage 3.1.1
+- keyring 19.2.0+
+- SecretStorage 3.1.1+
+
+\*Both are controlled and installed by `pip` automatically.
 
 ## Using Dup-composer with GNOME keyring in a GUI session
 
-If you are using the GNOME Desktop environment, it is very likely, that the keyring is running in the background unlocked. In this case, you can use your favorite GNOME Keyring frontend GUI application, eg. *Seahorse*, to create the entries for the secrets you want to store and have Dup-composer read from the keyring.
+If you are using the GNOME Desktop environment, it is very likely, that the keyring is running in the background unlocked. In this case, you can use your favorite GNOME Keyring frontend GUI application, eg. *Seahorse*, to create the entries for the secrets you want to store and have *Dup-composer* read from the keyring.
 
-As long as you execute Dup-composer from within the GNOME Desktop Environment, it should be able to read the configured secrets from the keyring.
+As long as you execute *Dup-composer* while logged in to the GNOME Desktop Environment, it should be able to read the configured secrets from the keyring.
 
 ## Using Dup-composer with GNOME Keyring on a headless Linux server
 
@@ -43,6 +48,7 @@ To install on Red Hat / CentOS 8, run:
 ```
 # yum install gnome-keyring
 ```
+
 ### Starting GNOME Keyring in an interactive DBUS session
 
 GNOME Keyring uses DBUS for communication, so Dup-composer has to have access to the DBUS session bus to communicate with the keyring. The official Python *keyring* library documentation [shows how to start](https://pypi.org/project/keyring/#using-keyring-on-headless-linux-systems) a DBUS session bus and GNOME Keyring instance interactively, but you can also see the steps below.
@@ -143,6 +149,7 @@ Restart=on-failure
 [Install]
 WantedBy=default.target
 ```
+
 #### Create the input file for the keyring passphrase
 
 As you can see in the unit file above, the `StandardInput` of the service is a file at the path:
@@ -193,7 +200,7 @@ Now that the keyring is ready to use, you can go ahead and [add your credentials
 
 ## Specifying a custom user and bus address for a backup group
 
-In some cases where your environment requires it, for example you have used the above process to create a keyring owned by a user different from the one used for executing *Dup-composer*, you might want to specify the user who owns the keyring and the DBUS address used for accessing this keyring. This will cause *Dup-composer* to:
+When your environment requires it, for example you have used the above process to create a keyring owned by a user different from the one used for executing *Dup-composer*, you might want to specify the user who owns the keyring and the DBUS address used for accessing this keyring. This will cause *Dup-composer* to:
 
 - Change the effective UID of the process to the UID of the username provided, while the credentials are read from the given keyring.
 - Use the socket path configured, instead of using the `DBUS_SESSION_BUS_ADDRESS` environment variable.
@@ -212,3 +219,5 @@ backup_groups:
 ```
 
 This configuration is per group, so you can use different parameters for different backup groups.
+
+NOTE: You only need to do this if you want to use a keyring different from the one in your current user environment. If you are using the keyring of the user running *Dup-composer* and the DBUS address is exported in the user's environment, it will be automatically picked up from the environment.
