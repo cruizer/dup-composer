@@ -9,7 +9,7 @@ To get started:
 - Install [Duplicity](http://duplicity.nongnu.org/) version 0.7 or newer.
 - Install *Dup-composer*.
 - Create your YAML configuration file and define your backup groups configuration in this file.
-- Execute `dupcomp.py`, define the groups you wish to execute and whether you want to do a `backup` or `restore`.
+- Execute `dupcomp`, define the groups you wish to execute and whether you want to do a `backup` or `restore`.
 
 You can find more detail for each step in its respective section.
 
@@ -223,5 +223,5 @@ backup_groups:
 ## Usage
 
 ```bash
-dupcomp.py [-d] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
+dupcomp [-d] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
 ```
