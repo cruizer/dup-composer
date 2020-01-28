@@ -6,21 +6,30 @@ Dup-composer is a front-end script for Duplicity, that lets you define your back
 
 To get started:
 
-- Download *Dup-composer*
+- Install [Duplicity](http://duplicity.nongnu.org/) version 0.7 or newer.
+- Install *Dup-composer*.
 - Create your YAML configuration file and define your backup groups configuration in this file.
 - Execute `dupcomp.py`, define the groups you wish to execute and whether you want to do a `backup` or `restore`.
 
 You can find more detail for each step in its respective section.
 
-## Requirements - might change any time in the near future
+## Requirements
 
-- Duplicity 0.7 installed and the `duplicity` script on your PATH.
-- Python 3.5
-- PyYAML 5.1
+- Duplicity 0.7+ installed and the `duplicity` script on your PATH.
+- Python 3.5+
+- Keyring 19.2+\*
+- SecretStorage 3.1.1+\*
+- PyYAML 5.1+\*
 
-## Download
+\* Will be installed by `pip` automatically.
 
-A reasonable process of building and installing this tool into production is work in progress. Deploying from *PyPI* is the direction I am planning to take.
+## Installation
+
+Install from [PyPI](https://pypi.org/project/dup-composer/):
+
+```
+pip3 install dup-composer
+```
 
 ## Configuration
 
