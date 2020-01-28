@@ -101,15 +101,17 @@ backup_provider:
 
 This configuration sets *Dup-composer* up to save the backup files on the **local filesystem**. There is no need to specify a concrete path here, as that will be determined by the `sources` section of the configuration. The URL will just set the *context* for those paths.
 
-For a **remote SCP backup**, you need a slightly different configuration:
+For a **remote SFTP or SCP backup**, you need a slightly different configuration:
 
 ```yaml
 backup_provider:
-  url: scp://myscpuser@host.example.com/
+  url: sftp://myscpuser@host.example.com/
   password: examplepassword123
 ```
 
-In this case, you need to specify the username of the remote *SCP* host in the first part of the *SCP* URL, which is what you would do using *Duplicity* directly as well. Use the `password` node to specify the password.
+In this case, you need to specify the username of the remote *SFTP* host in the first part of the *SFTP* URL, which is what you would do using *Duplicity* directly as well. Use the `password` node to specify the password.
+
+You can use *SCP* the same way, but use the `scp://` protocol in the URL instead of `sftp://`.
 
 **Keyring support:** The value of `password` can also be read from a keyring. See the [keyring support document](docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the password in the following format: `password: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
 
@@ -205,11 +207,11 @@ backup_groups:
       /home/shared:
         backup_path: /home/shared
         restore_path: /root/restored/home/shared
-  my_scp_backups:
+  my_sftp_backups:
     encryption:
       enabled: no
     backup_provider:
-      url: scp://myscpuser@host.example.com/
+      url: sftp://myscpuser@host.example.com/
       password: xxxxxx
     volume_size: 200
     sources:
