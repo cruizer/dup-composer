@@ -29,6 +29,11 @@ def main():
         elif opt == '-d':
             dry_run = True
 
+    if not args or args[0] not in ['backup', 'restore']:
+        print('backup|restore action is missing from the command!')
+        usage()
+        sys.exit(1)
+        
     config_raw =  read_config(config_file)
     # Check if groups requested are valid
     for group in args[1:]:

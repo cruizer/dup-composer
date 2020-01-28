@@ -191,6 +191,14 @@ class TestCLI(unittest.TestCase):
         self.assertRegex(self._get_cmd_out(['backup', 'foo']),
                          r'ValueError: No group foo in the configuration!')
 
+
+    def test_invalid_missing_action(self):
+        expected = r'^backup\|restore action is missing'
+        self.assertRegex(self._get_cmd_out(['-c', 'dupcomposer-config.yml']),
+                         expected)
+        self.assertRegex(self._get_cmd_out(['-c', 'dupcomposer-config.yml', 'foo']),
+                         expected)
+
     def test_specific_config_file(self):
        expected = ('Generating commands for group groupone:\n\n'
                    'duplicity --no-encryption --volsize 500 '
