@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import patch
 import subprocess
 import os
+import shutil
+import filecmp
+import glob
 import json
 import uuid
 
@@ -112,6 +115,10 @@ class TestCLI(unittest.TestCase):
             os.remove(self.dummy_outfile)
         except FileNotFoundError:
             pass
+        # clean up any existing cache files generated
+        for filename in glob.glob('*.cached'):
+            os.remove(filename)
+
 
     def test_simple(self):
         self.assertEqual(self._get_duplicity_results('backup_example_complete'),
@@ -235,7 +242,43 @@ class TestCLI(unittest.TestCase):
     def test_duplicity_nonzero_return(self):
         with patch.dict(self.environ, {'PATH': '../mock/nonzero-returncode'}):
             self.assertRegex(self._get_cmd_out(['backup']),
-                             r'Executing "duplicity --version" has failed')
+                             r'^Executing "duplicity --version" has failed')
+
+
+    def test_changed_config(self):
+        self.assertRegex(self._get_cmd_out(['-c', 'cache-test-fixture/dupcomposer-config-changed.yml', 'backup']),
+                         r'^The configuration of existing group\(s\) '
+                         'backup_local, backup_server')
+
+
+    def test_changed_config_skip(self):
+        expected = ('Generating commands for group backup_local:\n\n'
+                    'duplicity --no-encryption --volsize 200 '
+                    '/home/shared file:///home/shared\n'
+                    'duplicity --no-encryption --volsize 200 '
+                    'etc file://etc'
+                    '\n\n'
+                    'Generating commands for group backup_server:\n\n'
+                    'duplicity --no-encryption --volsize 200 '
+                    '/var/www/html sftp://sshuser@backuphost.example.com//root/backups/var/www/html'
+                    '\n\n'
+                    'Generating commands for group unchanged_group:\n\n'
+                    'duplicity --no-encryption --volsize 200 '
+                    '/etc file:///home/backups/etc\n\n')
+        self.assertEqual(self._get_cmd_out(['-s', '-d', '-c',
+                                            'cache-test-fixture/dupcomposer-config-changed.yml',
+                                            'backup']),
+                         expected)
+
+
+    def test_cache_file_create(self):
+        dummyfile = '/tmp/' + str(uuid.uuid4()) + '.yml'
+        cachefile = '.'.join([dummyfile, '.cached'])
+        shutil.copyfile('cache-test-fixture/dupcomposer-config-changed.yml', dummyfile)
+        self._get_cmd_out(['-c', dummyfile, 'backup'])
+        self.assertTrue(filecmp.cmp(dummyfile, cachefile))
+        os.remove(dummyfile)
+        os.remove(cachefile)
 
 
     # END test methods
@@ -250,6 +293,7 @@ class TestCLI(unittest.TestCase):
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         return proc.communicate()[0]
+
 
     def _get_duplicity_results(self, test_data_variant):
         subprocess.run(self.test_data[test_data_variant]['command'],
