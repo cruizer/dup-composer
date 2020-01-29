@@ -1,0 +1,2 @@
+#!/bin/bash
+echo 'duplicity 0.4.1'

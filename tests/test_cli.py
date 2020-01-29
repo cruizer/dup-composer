@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import subprocess
 import os
 import json
@@ -13,10 +14,14 @@ class TestCLI(unittest.TestCase):
         cls.workdir_original = os.getcwd()
         os.chdir('./tests/fixtures')
         cls.console_script = '../../dupcomp'
+        terminal_encoding = os.environ['LANG'].split('.')[1].lower()
+        path_raw = subprocess.run(['which', 'python3'],
+                                  stdout=subprocess.PIPE).stdout
+        cls.py3_exec = path_raw.decode(terminal_encoding).strip()
         cls.test_data = {
             'backup_example_complete':
                      {'config_file': 'dupcomposer-config.yml',
-                      'command': ['python3', cls.console_script, 'backup'],
+                      'command': [cls.py3_exec, cls.console_script, 'backup'],
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
                                   'file:///root/backups/var/www/html'],
@@ -45,7 +50,7 @@ class TestCLI(unittest.TestCase):
                                           {'FTP_PASSWORD': 'xxxxxx'}]}},
             'backup_example_specgroups':
                      {'config_file': 'dupcomposer-config.yml',
-                      'command': ['python3', cls.console_script,
+                      'command': [cls.py3_exec, cls.console_script,
                                   'backup', 'my_local_backups', 'my_s3_backups'],
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
@@ -70,7 +75,7 @@ class TestCLI(unittest.TestCase):
                                   {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'}]}},
             'backup_scpurl_fix':
                      {'config_file': 'dupcomposer-config-scpurl.yml',
-                      'command': ['python3', cls.console_script, '-c',
+                      'command': [cls.py3_exec, cls.console_script, '-c',
                                   'dupcomposer-config-scpurl.yml', 'backup'],
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
@@ -78,7 +83,7 @@ class TestCLI(unittest.TestCase):
                                  'envs': [{'FTP_PASSWORD': 'yyyyyy'}]}},
             'backup_sftp':
                      {'config_file': 'dupcomposer-config-sftp.yml',
-                      'command': ['python3', cls.console_script, '-c',
+                      'command': [cls.py3_exec, cls.console_script, '-c',
                                   'dupcomposer-config-sftp.yml', 'backup'],
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
@@ -87,10 +92,11 @@ class TestCLI(unittest.TestCase):
         }
         #cls.dummy_outfile = '../temp/dummy-out.json'
         cls.dummy_outfile = '/tmp/' + str(uuid.uuid4()) + '.json'
+        cls.environ = os.environ.copy()
         # We share the generated outfile with the mock
-        os.environ['duplicity_mock_outfile'] = cls.dummy_outfile
+        cls.environ['duplicity_mock_outfile'] = cls.dummy_outfile
         # Update path, so the mock Duplicity implementation is called.
-        os.environ['PATH'] = ':'.join(['../mock', os.environ['PATH']])
+        cls.environ['PATH'] = ':'.join(['../mock', os.environ['PATH']])
 
 
     @classmethod
@@ -213,19 +219,41 @@ class TestCLI(unittest.TestCase):
                                            'backup']),
                         expected)
 
+
+    def test_duplicity_not_found(self):
+        with patch.dict(self.environ, {'PATH': ''}):
+            self.assertRegex(self._get_cmd_out(['backup']),
+                             r'^duplicity executable not found')
+
+
+    def test_duplicity_oldversion(self):
+        with patch.dict(self.environ, {'PATH': '../mock/old-version'}):
+            self.assertRegex(self._get_cmd_out(['backup']),
+                             r'^Unsupported Duplicity version 0\.4\.1')
+
+
+    def test_duplicity_nonzero_return(self):
+        with patch.dict(self.environ, {'PATH': '../mock/nonzero-returncode'}):
+            self.assertRegex(self._get_cmd_out(['backup']),
+                             r'Executing "duplicity --version" has failed')
+
+
     # END test methods
     # START utility methods
 
     def _get_cmd_out(self, args):
         """Execute dupcomp with the provided args and return the output."""
-        cmd = ['python3', self.console_script]
+        cmd = [self.py3_exec, self.console_script]
         cmd.extend(args)
         proc = subprocess.Popen(cmd, universal_newlines=True,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                env=self.environ,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
         return proc.communicate()[0]
 
     def _get_duplicity_results(self, test_data_variant):
-        subprocess.run(self.test_data[test_data_variant]['command'])
+        subprocess.run(self.test_data[test_data_variant]['command'],
+                       env=self.environ)
         with open(self.dummy_outfile) as f:
             result = json.loads(f.read())
         return result

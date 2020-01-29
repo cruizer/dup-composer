@@ -35,6 +35,8 @@ class BackupRunner:
     :param mode: The execution mode (Duplicity command) to execute.
     :type mode: str
     """
+    command = ['duplicity']
+
     def __init__(self, config, mode):
         self.base_cmd = 'duplicity'
         if isinstance(config, backup_config.BackupConfig):
@@ -66,7 +68,7 @@ class BackupRunner:
                 for i in range(len(opts)):
                     # BackupGroup only returns the options,
                     # so prepend with the actual command.
-                    opts[i][:0] = ['duplicity']
+                    opts[i][:0] = BackupRunner.command
                 cmds[group] = opts
         return cmds
 
