@@ -225,8 +225,20 @@ backup_groups:
         backup_path: /home/katy
         restore_path: /root/restored/home/katy
 ```
+### Configuration change safeguard
+
+To reduce the risk of unintentional changes, or changes that might have a negative effect on existing backup chains, *Dup-composer* will print an informational message and abort the execution if any of the existing backup groups are changed. The user can verify, if the change is intentional and if so, rerun *Dup-composer* with the `-s` option to disable the safeguard.
+
 ## Usage
 
 ```bash
-dupcomp [-d] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
+dupcomp -h
+-----
+usage: dupcomp.py [-d] [-s] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
+
+optional arguments:
+ -d                dry run (just print the commands to be executed)
+ -c <configpath>   use the configuration file at <configpath>
+ -s                skip the configuration change safeguard step
+ -----
 ```
