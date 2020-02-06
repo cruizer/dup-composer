@@ -24,7 +24,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.test_pypi_password }}
-          repository_url: https://test.pypi.org/legacy
+          repository_url: https://test.pypi.org/legacy/
       - name: Publish to PyPI
         if: startsWith(github.event.ref, 'refs/tags/v0')
         uses: pypa/gh-action-pypi-publish@master
