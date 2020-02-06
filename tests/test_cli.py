@@ -265,6 +265,8 @@ class TestCLI(unittest.TestCase):
                     'Generating commands for group unchanged_group:\n\n'
                     'duplicity --no-encryption --volsize 200 '
                     '/etc file:///home/backups/etc\n\n')
+        # We have to  test with dry run, so that our test
+        # cache file is not updated!
         self.assertEqual(self._get_cmd_out(['-s', '-d', '-c',
                                             'cache-test-fixture/dupcomposer-config-changed.yml',
                                             'backup']),
