@@ -51,7 +51,7 @@ class BackupGroup:
         
         for  i in self.mandatory_datakeys:
             if i not in self.group_data:
-                raise KeyError('Invalid backup group configuration data')
+                raise KeyError('Invalid group configuration data, key "%s" is missing.' % i)
 
         self.encryption = BackupEncryption(group_data['encryption'], self)
         self.provider = BackupProvider.factory(group_data['backup_provider'], self)

@@ -79,9 +79,10 @@ class TestBackupGroup(unittest.TestCase):
                          'scp://myscpuser@host.example.com/')
 
     def test_invalid_group_data(self):
-        self.assertRaises(KeyError,
-                          BackupGroup,
-                          {'foo': 'bar'}, 'foo')
+        self.assertRaisesRegex(KeyError,
+                               'Invalid group configuration data, key "encryption" is missing.',
+                               BackupGroup,
+                               {'foo': 'bar'}, 'foo')
 
     def test_volume_cmd(self):
         self.assertEqual(self.backup_groups['my_local_backups']._get_volume_cmd(),
