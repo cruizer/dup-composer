@@ -15,9 +15,10 @@ def main():
     config_file = 'dupcomposer-config.yml'
     dry_run = False
     skip_config_safeguard = False
+    full_backup = False
     # Collecting and parsing options
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'c:dhs')
+        opts, args = getopt.getopt(sys.argv[1:], 'c:dhsf')
     except getopt.GetoptError as err:
         print(err)
         usage()
@@ -38,12 +39,22 @@ def main():
         # Skip config change test
         elif opt == '-s':
             skip_config_safeguard = True
+        elif opt == '-f':
+            full_backup = True
+        elif opt == '-h':
+            usage()
+            sys.exit(0)
 
     if not args or args[0] not in ['backup', 'restore']:
         print('backup|restore action is missing from the command!')
         usage()
         sys.exit(1)
         
+    if full_backup and args[0] == 'restore':
+        print('-f: force full backup is an invalid option for a restore.')
+        usage()
+        sys.exit(1)
+
     config_raw =  read_config(config_file)
     # Check if groups requested are valid
     for group in args[1:]:
@@ -54,7 +65,7 @@ def main():
         check_config_change(config_raw, config_file)
     # Setting up the environment
     config = BackupConfig(config_raw)
-    runner = BackupRunner(config,args[0])
+    runner = BackupRunner(config, args[0], full_backup)
 
     # Do the actual run
     if dry_run:
@@ -62,14 +73,13 @@ def main():
         # Sorting keys for consistent ordering of output (for functional tests).
         for group in sorted(commands):
             print('Generating commands for group {}:\n'.format(group))
-
             for cmd in commands[group]:
                 print(' '.join(cmd))
 
             print()
     else:
         # True run
-        runner.run_cmds()
+        runner.run_cmds(args[1:])
         # Cache current run's config so that we can compare later
         save_config_cache(config_file)
 

@@ -34,11 +34,14 @@ class BackupRunner:
     :type config: :class:`backup_config.BackupConfig`
     :param mode: The execution mode (Duplicity command) to execute.
     :type mode: str
+    :param is_full_backup: Force full backup?
+    :type is_full_backup: bool
     """
     command = ['duplicity']
 
-    def __init__(self, config, mode):
+    def __init__(self, config, mode, is_full_backup=False):
         self.base_cmd = 'duplicity'
+        self.is_full_backup = is_full_backup
         if isinstance(config, backup_config.BackupConfig):
             self.config = config
         else:
@@ -66,6 +69,9 @@ class BackupRunner:
             if not group_names or group in group_names:
                 opts =  self.config.groups[group].get_opts_raw(self.mode)
                 for i in range(len(opts)):
+                    # We prepend the options if full is forced.
+                    if self.is_full_backup and self.mode == 'backup':
+                        opts[i][:0] = ['full']
                     # BackupGroup only returns the options,
                     # so prepend with the actual command.
                     opts[i][:0] = BackupRunner.command

@@ -112,7 +112,20 @@ class TestCLI(unittest.TestCase):
                                     'file:///backups/dummyusr', '/root/restore/dummyusr']],
                                   'envs': [{}]
                                   }
-                       }
+                       },
+            'backup_full':
+                       {'config_file': 'dupcomposer-config-2.yml',
+                        'command': [cls.py3_exec, cls.console_script, '-f',
+                                    '-c', 'dupcomposer-config-2.yml', 'backup',
+                                    'groupone'],
+                        'result': {'args':
+                                   [['full', '--no-encryption', '--volsize', '500',
+                                     '/etc', 'file:///root/backups/system'],
+                                    ['full', '--no-encryption', '--volsize', '500',
+                                     '/home/foo/bar', 'file:///root/backups/user']],
+                                   'envs': [{}, {}]
+                                   }
+                        }
         }
         #cls.dummy_outfile = '../temp/dummy-out.json'
         cls.dummy_outfile = '/tmp/' + str(uuid.uuid4()) + '.json'
@@ -147,7 +160,7 @@ class TestCLI(unittest.TestCase):
 
     def test_specific_groups(self):
         self.assertEqual(self._get_duplicity_results('backup_example_specgroups'),
-                         self.test_data['backup_example_complete']['result'])
+                         self.test_data['backup_example_specgroups']['result'])
 
     def test_scp_missing_trailing_backslash(self):
         self.assertEqual(self._get_duplicity_results('backup_scpurl_fix'),
@@ -269,6 +282,9 @@ class TestCLI(unittest.TestCase):
         self.assertRegex(self._get_cmd_out(['-c', 'cache-test-fixture/dupcomposer-config-changed.yml', 'backup']),
                          r'^The configuration of existing group\(s\) '
                          'backup_local, backup_server')
+    def test_invalid_option_full_for_restore(self):
+        self.assertRegex(self._get_cmd_out(['-f', '-c', 'dupcomposer-config.yml', 'restore']),
+                         r'^-f: force full backup is an invalid option')
 
 
     def test_changed_config_skip(self):
@@ -309,6 +325,10 @@ class TestCLI(unittest.TestCase):
     def test_filters_not_present_at_restore(self):
         self.assertEqual(self._get_duplicity_results('backup_filters_restore'),
                          self.test_data['backup_filters_restore']['result'])
+
+    def test_force_full_backup(self):
+        self.assertEqual(self._get_duplicity_results('backup_full'),
+                         self.test_data['backup_full']['result'])
 
 
     # END test methods
