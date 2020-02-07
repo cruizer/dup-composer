@@ -6,7 +6,7 @@ from dupcomposer.backup_config import (BackupConfig, BackupGroup,
                                        BackupEncryption, BackupProvider,
                                        BackupProviderLocal, BackupProviderS3,
                                        BackupProviderSSH, BackupSource,
-                                       BackupFilePrefixes)
+                                       BackupFilePrefixes, BackupPathFilter)
 
 class TestBackupConfig(unittest.TestCase):
 
@@ -618,6 +618,23 @@ class TestBackupSource(unittest.TestCase):
                           self.local_provider)
 
 
+    def test_with_filters(self):
+        provider = BackupProvider({'url': 'file://'})
+        source = BackupSource('/home/user',
+                              {'backup_path': '/home/backup/user',
+                               'restore_path': '/root/restore/user',
+                               'filters': [{'type': 'exclude', 'path': '/home/user/nobak'},
+                                           {'type': 'include', 'path': '/home/user/bak'},
+                                           {'type': 'include', 'path': '/home/user/nobak/bak'}]
+                              },
+                              provider)
+        self.assertEqual(source.get_cmd('backup'),
+                         ['--exclude', '/home/user/nobak',
+                          '--include', '/home/user/bak',
+                          '--include', '/home/user/nobak/bak',
+                          '/home/user', 'file:///home/backup/user'])
+
+
 class TestBackupFilePrefixes(unittest.TestCase):
 
     @classmethod
@@ -646,3 +663,48 @@ class TestBackupFilePrefixes(unittest.TestCase):
         self.assertRaises(ValueError,
                           BackupFilePrefixes,
                           {'archive': 'archive_', 'foo': 'bar'})
+
+
+class TestBackupPathFilter(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        filter_conf = [{'type': 'exclude', 'path': '/foo/bar'},
+                       {'type': 'include', 'path': '/dummy/dee'},
+                       {'type': 'exclude', 'path': '/bar/foo'},
+                       {'type': 'include', 'path': '/dee/dummy'}]
+        cls.filter = BackupPathFilter(filter_conf)
+
+
+    def setUp(self):
+        pass
+
+    def test_instances(self):
+        self.assertIsInstance(self.filter, BackupPathFilter)
+
+
+    def test_invalid_config(self):
+        self.assertRaisesRegex(ValueError,
+                               'Invalid filter item in \[\'path\', \'typ\'\]\.',
+                               BackupPathFilter,
+                               [{'typ': 'exclude', 'path': '/foo/bar'}])
+        self.assertRaisesRegex(ValueError,
+                               'Invalid filter type eclude',
+                               BackupPathFilter,
+                               [{'type': 'eclude', 'path': '/foo/bar'}])
+        self.assertRaisesRegex(ValueError,
+                               'Invalid filter item in \[\'pth\', \'type\'\]\.',
+                               BackupPathFilter,
+                               [{'type': 'exclude', 'pth': '/foo/bar'}])
+
+
+    def test_get_cmd(self):
+        self.assertEqual(self.filter.get_cmd(),
+                         ['--exclude', '/foo/bar', '--include', '/dummy/dee',
+                          '--exclude', '/bar/foo', '--include', '/dee/dummy'])
+
+
+    def test_empty_filter(self):
+        filter = BackupPathFilter(None)
+        self.assertEqual(filter.get_cmd(),
+                         [])

@@ -1,0 +1,17 @@
+# Fixture config to test include / exclude filters
+backup_groups:
+  filter_test:
+    backup_provider:
+      url: file://
+    encryption:
+      enabled: no
+    volume_size: 200
+    sources:
+      /dummyusr:
+        backup_path: /backups/dummyusr
+        restore_path: /root/restore/dummyusr
+        filters:
+          - type: exclude
+            path: /dummyusr/secrets
+          - type: include
+            path: /dummyusr/pub

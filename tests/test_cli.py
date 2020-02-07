@@ -91,7 +91,28 @@ class TestCLI(unittest.TestCase):
                       'result': {'args':
                                  [['--no-encryption', '--volsize', '200', '/var/www/html',
                                    'sftp://sftpuser@myhost.example.com//home/bkup']],
-                                 'envs': [{'FTP_PASSWORD': 'xxxxxx'}]}}
+                                 'envs': [{'FTP_PASSWORD': 'xxxxxx'}]}},
+            'backup_filters':
+                     {'config_file': 'dupcomposer-config-filters.yml',
+                      'command': [cls.py3_exec, cls.console_script, '-c',
+                                  'dupcomposer-config-filters.yml', 'backup'],
+                      'result': {'args':
+                                 [['--no-encryption', '--volsize', '200', '--exclude',
+                                   '/dummyusr/secrets', '--include', '/dummyusr/pub',
+                                   '/dummyusr', 'file:///backups/dummyusr']],
+                                 'envs': [{}]
+                                 }
+                      },
+            'backup_filters_restore':
+                      {'config_file': 'dupcomposer-config-filters.yml',
+                       'command': [cls.py3_exec, cls.console_script, '-c',
+                                   'dupcomposer-config-filters.yml', 'restore'],
+                       'result': {'args':
+                                  [['--no-encryption', '--volsize', '200',
+                                    'file:///backups/dummyusr', '/root/restore/dummyusr']],
+                                  'envs': [{}]
+                                  }
+                       }
         }
         #cls.dummy_outfile = '../temp/dummy-out.json'
         cls.dummy_outfile = '/tmp/' + str(uuid.uuid4()) + '.json'
@@ -123,7 +144,6 @@ class TestCLI(unittest.TestCase):
     def test_simple(self):
         self.assertEqual(self._get_duplicity_results('backup_example_complete'),
                          self.test_data['backup_example_complete']['result'])
-
 
     def test_specific_groups(self):
         self.assertEqual(self._get_duplicity_results('backup_example_specgroups'),
@@ -281,6 +301,14 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(filecmp.cmp(dummyfile, cachefile))
         os.remove(dummyfile)
         os.remove(cachefile)
+
+    def test_filters_backup(self):
+        self.assertEqual(self._get_duplicity_results('backup_filters'),
+                         self.test_data['backup_filters']['result'])
+
+    def test_filters_not_present_at_restore(self):
+        self.assertEqual(self._get_duplicity_results('backup_filters_restore'),
+                         self.test_data['backup_filters_restore']['result'])
 
 
     # END test methods

@@ -382,6 +382,7 @@ class BackupSource:
 
             raise ValueError('Empty path is not allowed.')
         self._check_forbidden_chars()
+        self.filters = BackupPathFilter(config.get('filters', None))
             
     def get_cmd(self, mode='backup'):
         """Get the source and target path for the given action.
@@ -401,8 +402,10 @@ class BackupSource:
         """
         # The Duplicity action is determined by the URL / path order.
         if mode == 'backup':
-            return [self.source_path,
-                    self.provider.get_cmd(self.backup_path)]
+            cmd = self.filters.get_cmd()
+            cmd.extend([self.source_path, self.provider.get_cmd(self.backup_path)])
+            return cmd
+        # Include / exclude not supported for restore!
         elif mode == 'restore':
             if not self.restore_path:
                 raise ValueError('Restore path is not defined in the configuration.')
@@ -461,3 +464,42 @@ class BackupFilePrefixes:
             else:
                 raise ValueError('{} is not a valid prefix option.'.format(k))
 
+
+class BackupPathFilter:
+    """Determine the include and exclude filters.
+
+    :param config: A list of exclude and include config items.
+    :type config: list
+    """
+    def __init__(self, config=None):
+        self.config = config
+        self.valid_keys = ['path', 'type']
+        self.valid_types = ['exclude', 'include']
+        if self.config:
+            self._verify_config()
+
+
+    def _verify_config(self):
+        """Check the config data consistency."""
+        for filter in self.config:
+            filter_type = filter.get('type', None)
+            if sorted(filter.keys()) != self.valid_keys:
+                raise ValueError('Invalid filter item in %s.' % sorted(filter.keys()))
+            if filter_type not in self.valid_types:
+                raise ValueError('Invalid filter type %s.' % filter_type)
+
+            
+    def get_cmd(self):
+        """Get the Duplicity CLI options
+        for include and exclude filters.
+
+        return cmd: The command options.
+        rtype cmd: list
+        """
+        if self.config:
+            cmd = []
+            for filter in self.config:
+                cmd.extend(['--' + filter['type'], filter['path']])
+            return cmd
+        else:
+            return []
