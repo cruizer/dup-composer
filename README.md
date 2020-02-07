@@ -167,6 +167,48 @@ There are a few limitations on the path data provided in this configuration:
 - They can't contain any newline characters.
 - Extra: Make sure to check quoting rules if you need to add any characters, that have a special meaning in the *YAML* syntax.
 
+#### Include and exclude filters
+
+You can configure a list of paths *included* in or *excluded* from the backup for each backup source. The configuration ends up being passed to *Duplicity* through the `--include` and `--exclude` command line options.
+
+For example, taking the following configuration file `filtered-backup.yml`:
+
+```yaml
+backup_groups:
+  my_filtered_backup:
+    encryption:
+      enabled: no
+    backup_provider:
+      url: file://
+    volume_size: 400
+    sources:
+      /var/www/html:
+        backup_path: /home/backups/web_server_docroot
+        restore_path: /var/www/html
+        filters:
+          - type: exclude
+            path: /var/www/html/no_bak
+          - type: include
+            path: /var/www/thml/no_bak/important
+```
+
+and running Dup-composer like this:
+
+```bash
+dupcomp -c filtered-backup.yml backup
+```
+
+will result in the following *Duplicity* command:
+```bash
+duplicity --no-encryption --volsize 400 --exclude /var/www/html/no_bak --include /var/www/html/no_bak/important /var/www/html file:///home/backups/web_server_docroot
+```
+
+Important:
+
+- You can list as many *include* and *exclude* filters as needed.
+- The order in which you list the filters matters, as it will be passed in the same order to *Duplicity*. Please consult the [Duplicity man pages](http://duplicity.nongnu.org/vers8/duplicity.1.html) to understand how the order impacts the processing.
+- The filters are only supported for backups.
+
 ### Example
 
 `backup-compose.yml` example:
