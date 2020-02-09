@@ -1,0 +1,12 @@
+backup_groups:
+  full_frequency:
+    encryption:
+      enabled: no
+    volume_size: 486
+    backup_provider:
+      url: file://
+    full_backup_frequency: 1M
+    sources:
+      /var/foo:
+        backup_path: /foo/backup
+        restore_path: /foo/restore

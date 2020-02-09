@@ -57,6 +57,7 @@ class BackupGroup:
         self.provider = BackupProvider.factory(group_data['backup_provider'], self)
         self._setup_prefixes()
         self._setup_sources()
+        self.full_frequency = group_data.get('full_backup_frequency', None)
         self.volsize = group_data['volume_size']
 
 
@@ -84,7 +85,8 @@ class BackupGroup:
         for source in self.sources:
             # Chain the CLI options.
             opts_all.append(self.encryption.get_cmd() + self._get_volume_cmd() +
-                             self.prefix.get_cmd() + source.get_cmd(mode))
+                            self.prefix.get_cmd() + self._get_full_frequency(mode) +
+                            source.get_cmd(mode))
         return opts_all
 
     def get_env(self):
@@ -114,6 +116,13 @@ class BackupGroup:
     def _setup_prefixes(self):
         """Instantiate :class:`BackupFilePrefixes` objects for the group"""
         self.prefix = BackupFilePrefixes(self.group_data.get('backup_file_prefixes', None))
+
+    def _get_full_frequency(self, mode):
+        """Generate the full backup frequency CLI option."""
+        if self.full_frequency and mode == 'backup':
+            return ['--full-if-older-than', str(self.full_frequency)]
+        else:
+            return []
 
 class BackupEncryption:
     """Handle the GPG encryption.

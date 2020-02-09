@@ -125,7 +125,28 @@ class TestCLI(unittest.TestCase):
                                      '/home/foo/bar', 'file:///root/backups/user']],
                                    'envs': [{}, {}]
                                    }
-                        }
+                        },
+            'full_frequency_backup':
+                        {'config_file': 'dupcomposer-config-full-frequency.yml',
+                         'command': [cls.py3_exec, cls.console_script, '-c',
+                                     'dupcomposer-config-full-frequency.yml', 'backup'],
+                         'result': {'args':
+                                    [['--no-encryption', '--volsize', '486',
+                                      '--full-if-older-than', '1M', '/var/foo',
+                                      'file:///foo/backup']],
+                                    'envs': [{}]
+                                    }
+                         },
+            'full_frequency_restore':
+                        {'config_file': 'dupcomposer-config-full-frequency.yml',
+                         'command': [cls.py3_exec, cls.console_script, '-c',
+                                     'dupcomposer-config-full-frequency.yml', 'restore'],
+                         'result': {'args':
+                                    [['--no-encryption', '--volsize', '486',
+                                      'file:///foo/backup', '/foo/restore']],
+                                    'envs': [{}]
+                                    }
+                         }
         }
         #cls.dummy_outfile = '../temp/dummy-out.json'
         cls.dummy_outfile = '/tmp/' + str(uuid.uuid4()) + '.json'
@@ -168,6 +189,16 @@ class TestCLI(unittest.TestCase):
     def test_sftp(self):
         self.assertEqual(self._get_duplicity_results('backup_sftp'),
                          self.test_data['backup_sftp']['result'])
+
+    def test_full_frequency_backup(self):
+        self.assertEqual(self._get_duplicity_results('full_frequency_backup'),
+                         self.test_data['full_frequency_backup']['result'])
+
+
+    def test_full_frequency_restore(self):
+        self.assertEqual(self._get_duplicity_results('full_frequency_restore'),
+                         self.test_data['full_frequency_restore']['result'])
+
 
     def test_dry(self):
         expected = ('Generating commands for group my_local_backups:\n\n'

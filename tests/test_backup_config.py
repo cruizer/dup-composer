@@ -184,6 +184,25 @@ class TestBackupGroup(unittest.TestCase):
                            '--volsize', '200',
                            'scp://myscpuser@host.example.com/home/fun',
                            'restored/home/fun']])
+    def test_get_opts_raw_full_frequency_backup(self):
+        config = {'encryption': {'enabled': False},
+                  'backup_provider': {'url': 'file://'},
+                  'sources': {'/var/foo':
+                              {'backup_path': '/foo/backup',
+                               'restore_path': '/foo/restore'}},
+                  'volume_size': 486,
+                  'full_backup_frequency': '1M'}
+        group = BackupGroup(config, 'backup_frequency')
+        self.assertEqual(group.get_opts_raw('backup'),
+                         [['--no-encryption',
+                           '--volsize', '486',
+                           '--full-if-older-than', '1M',
+                           '/var/foo', 'file:///foo/backup']])
+        self.assertEqual(group.get_opts_raw('restore'),
+                         [['--no-encryption',
+                           '--volsize', '486',
+                           'file:///foo/backup', '/foo/restore']])
+
 
     def test_get_env(self):
         self.assertEqual(self.backup_groups['my_local_backups'].get_env(), {})
