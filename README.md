@@ -1,4 +1,5 @@
 # Dup-composer
+![](https://github.com/cruizer/dup-composer/workflows/Publish%20Dup-composer%20to%20PyPI./badge.svg)
 
 Dup-composer is a front-end script for Duplicity, that lets you define your backups in a configuration file and execute them in a simple way.
 
