@@ -276,11 +276,12 @@ To reduce the risk of unintentional changes, or changes that might have a negati
 ```bash
 dupcomp -h
 -----
-usage: dupcomp.py [-d] [-s] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
+usage: dupcomp.py [-d] [-s] [-f] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
 
 optional arguments:
  -d                dry run (just print the commands to be executed)
  -c <configpath>   use the configuration file at <configpath>
  -s                skip the configuration change safeguard step
+ -f                force full backup
  -----
 ```

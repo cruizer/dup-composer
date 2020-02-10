@@ -86,12 +86,13 @@ def main():
 
 def usage():
     print("""-----
-usage: dupcomp.py [-d] [-s] [-c <configpath>] backup|restore
+usage: dupcomp.py [-d] [-f] [-s] [-c <configpath>] backup|restore
 
 optional arguments:
  -d                dry run (just print the commands to be executed)
  -c <configpath>   use the configuration file at <configpath>
  -s                skip the configuration change safeguard step
+ -f                force full backup
 -----""")
 
 
