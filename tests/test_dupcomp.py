@@ -8,14 +8,14 @@ class TestBackupRunner(unittest.TestCase):
     def setUpClass(cls):
         cls.config_data = read_config('tests/fixtures/dupcomposer-config.yml')
         cls.cmds_expected_bkup = \
-            {'my_s3_backups': [['duplicity', '--encrypt-key xxxxxx', '--sign-key xxxxxx',
+            {'my_s3_backups': [['duplicity', '--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
                                 '--volsize', '50',
                                 '--file-prefix-archive', 'archive_',
                                 '--file-prefix-manifest', 'manifest_',
                                 '--file-prefix-signature', 'signature_',
                                 '/home/shared',
                                 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared'],
-                               ['duplicity', '--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                               ['duplicity', '--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
                                 '--volsize', '50',
                                 '--file-prefix-archive', 'archive_',
                                 '--file-prefix-manifest', 'manifest_',

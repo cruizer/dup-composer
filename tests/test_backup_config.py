@@ -117,14 +117,14 @@ class TestBackupGroup(unittest.TestCase):
 
     def test_get_opts_raw_backup(self):
         self.assertEqual(self.backup_groups['my_s3_backups'].get_opts_raw('backup'),
-                         [['--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                         [['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
                            '--volsize', '50',
                            '--file-prefix-archive', 'archive_',
                            '--file-prefix-manifest', 'manifest_',
                            '--file-prefix-signature', 'signature_',
                            '/home/shared',
                            's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared'],
-                          ['--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                          ['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
                            '--volsize', '50',
                            '--file-prefix-archive', 'archive_',
                            '--file-prefix-manifest', 'manifest_',
@@ -152,14 +152,14 @@ class TestBackupGroup(unittest.TestCase):
 
     def test_get_opts_raw_restore(self):
         self.assertEqual(self.backup_groups['my_s3_backups'].get_opts_raw('restore'),
-                         [['--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                         [['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
                            '--volsize', '50',
                            '--file-prefix-archive', 'archive_',
                            '--file-prefix-manifest', 'manifest_',
                            '--file-prefix-signature', 'signature_',
                            's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/shared',
                            '/root/restored/home/shared'],
-                          ['--encrypt-key xxxxxx', '--sign-key xxxxxx',
+                          ['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
                            '--volsize', '50',
                            '--file-prefix-archive', 'archive_',
                            '--file-prefix-manifest', 'manifest_',
@@ -289,7 +289,7 @@ class TestBackupEncryption(unittest.TestCase):
 
     def test_cmd_output_enc_on(self):
         self.assertEqual(self.backup_encryption_on.get_cmd(),
-                         ['--encrypt-key xxxxxx', '--sign-key xxxxxx'])
+                         ['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx'])
 
     def test_environment_enc_on(self):
         self.assertEqual(self.backup_encryption_on.get_env(),

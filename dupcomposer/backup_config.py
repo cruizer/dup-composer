@@ -147,8 +147,8 @@ class BackupEncryption:
         if self.enabled == False:
             return ['--no-encryption']
         else:
-            return ['--encrypt-key {}'.format(self.gpg_key),
-                    '--sign-key {}'.format(self.gpg_key)]
+            return ['--encrypt-key', self.gpg_key,
+                    '--sign-key', self.gpg_key]
 
     def get_env(self):
         """Get the shell env. variables for the encryption.
