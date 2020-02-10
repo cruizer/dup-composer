@@ -47,8 +47,8 @@ class TestCLI(unittest.TestCase):
                                   'scp://myscpuser@host.example.com/home/fun']],
                                  'envs': [{},
                                           {},
-                                          {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'},
-                                          {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'},
+                                          {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'},
+                                          {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'},
                                           {'FTP_PASSWORD': 'xxxxxx'},
                                           {'FTP_PASSWORD': 'xxxxxx'}]}},
             'backup_example_specgroups':
@@ -75,8 +75,9 @@ class TestCLI(unittest.TestCase):
                                  'envs':
                                  [{},
                                   {},
-                                  {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'},
-                                  {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx'}]}},
+                                  {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'},
+                                  {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'}]}
+                     },
             'backup_scpurl_fix':
                      {'config_file': 'dupcomposer-config-scpurl.yml',
                       'command': [cls.py3_exec, cls.console_script, '-c',
@@ -181,6 +182,7 @@ class TestCLI(unittest.TestCase):
                          self.test_data['backup_example_complete']['result'])
 
     def test_specific_groups(self):
+        self.maxDiff = None
         self.assertEqual(self._get_duplicity_results('backup_example_specgroups'),
                          self.test_data['backup_example_specgroups']['result'])
 

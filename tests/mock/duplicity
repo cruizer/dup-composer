@@ -11,7 +11,7 @@ def filter_dup_env(env):
     Keep only the environment variables, that are used
     by Duplicity.
     """
-    duplicity_vars = ('AWS_ACCESS_KEY', 'AWS_SECRET_KEY', 'FTP_PASSWORD')
+    duplicity_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'FTP_PASSWORD')
     filtered = {key: env[key] for key in duplicity_vars if key in env}
     return filtered
 

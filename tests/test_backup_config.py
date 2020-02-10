@@ -207,7 +207,7 @@ class TestBackupGroup(unittest.TestCase):
     def test_get_env(self):
         self.assertEqual(self.backup_groups['my_local_backups'].get_env(), {})
         self.assertEqual(self.backup_groups['my_s3_backups'].get_env(),
-                         {'AWS_ACCESS_KEY': 'xxxxxx', 'AWS_SECRET_KEY': 'xxxxxx',
+                         {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx',
                           'PASSPHRASE': 'xxxxxx'})
         self.assertEqual(self.backup_groups['my_scp_backups'].get_env(),
                          {'FTP_PASSWORD': 'xxxxxx'}) 
@@ -381,8 +381,8 @@ class TestBackupProviderS3(unittest.TestCase):
                          's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/test')
 
     def test_get_env(self):
-        self.assertEqual(self.backup_s3.get_env(), {'AWS_ACCESS_KEY': 'xxxxxx',
-                                                    'AWS_SECRET_KEY': 'xxxxxx'})
+        self.assertEqual(self.backup_s3.get_env(), {'AWS_ACCESS_KEY_ID': 'xxxxxx',
+                                                    'AWS_SECRET_ACCESS_KEY': 'xxxxxx'})
 
 
     def test_get_env_from_keyring(self):
@@ -392,8 +392,8 @@ class TestBackupProviderS3(unittest.TestCase):
                                           'aws_access_key': 'xxxxxx',
                                            'aws_secret_key': ['aws', 'account']},
                                           backup_group)
-        self.assertEqual(provider.get_env(), {'AWS_ACCESS_KEY': 'xxxxxx',
-                                              'AWS_SECRET_KEY': 'mysecretkey'})
+        self.assertEqual(provider.get_env(), {'AWS_ACCESS_KEY_ID': 'xxxxxx',
+                                              'AWS_SECRET_ACCESS_KEY': 'mysecretkey'})
         backup_group.keyring.get_secret.assert_called_once_with(['aws', 'account'])
 
 

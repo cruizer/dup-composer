@@ -339,8 +339,8 @@ class BackupProviderS3(BackupProvider):
         :return: The environent variables with the AWS credentials.
         :rtype: dict
         """
-        return {'AWS_ACCESS_KEY': self.access_key,
-                'AWS_SECRET_KEY': self.secret_key}
+        return {'AWS_ACCESS_KEY_ID': self.access_key,
+                'AWS_SECRET_ACCESS_KEY': self.secret_key}
 
 class BackupProviderSSH(BackupProvider):
     """SFTP/SCP backup target provider.
