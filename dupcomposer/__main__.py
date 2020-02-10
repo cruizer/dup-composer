@@ -117,7 +117,7 @@ def check_duplicity_version(codec):
                                            result.stderr.decode(codec)]))
         exit(1)
     else:
-        major, minor, patch = map(int, result.stdout.split(b' ')[-1].split(b'.'))
+        major, minor, patch = map(int, result.stdout.split(b' ')[-1].split(b'.')[:3])
         if major == 0 and minor < 7:
             print('Unsupported Duplicity version %d.%d.%d!\n\n'
                   'Please install Duplicity 0.7 or later.' % (major, minor, patch))
