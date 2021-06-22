@@ -13,7 +13,7 @@ BackupSource: Backup/restore path options.
 BackupFilePrefixes: Handle the file prefixing for backup files.
 """
 import re
-from dupcomposer import backup_keyring
+from . import backup_keyring
 
 class BackupConfig:
     """Generate the backup groups from the config data and store them.

@@ -13,7 +13,7 @@ import yaml
 import time
 import subprocess
 import os
-from dupcomposer import backup_config
+from . import backup_config
 
 def read_config(file_path):
     """Read the configuration file and load the YAML data.
