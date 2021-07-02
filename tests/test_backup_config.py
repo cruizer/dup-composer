@@ -26,7 +26,7 @@ class TestBackupConfig(unittest.TestCase):
                          self.config_data)
 
     def test_backup_groups_number(self):
-        self.assertEqual(len(self.backup_config.groups), 3)
+        self.assertEqual(len(self.backup_config.groups), 4)
 
     def test_backup_groups_instances(self):
         for group in self.backup_config.groups.values():
@@ -60,6 +60,8 @@ class TestBackupGroup(unittest.TestCase):
             BackupGroup(self.config_data['backup_groups']['my_scp_backups'], 'my_scp_backups')
         self.backup_groups['backup_with_keyring'] = \
             BackupGroup(self.config_with_keyring, 'backup_with_keyring')
+        self.backup_groups['my_s3_boto3_backups'] = \
+            BackupGroup(self.config_data['backup_groups']['my_s3_boto3_backups'], 'my_s3_boto3_backups')
 
 
     def test_name(self):
@@ -74,6 +76,9 @@ class TestBackupGroup(unittest.TestCase):
         self.assertEqual(self.backup_groups['my_s3_backups']
                          .group_data['backup_provider']['url'],
                          's3://s3.sa-east-1.amazonaws.com/my-backup-bucket')
+        self.assertEqual(self.backup_groups['my_s3_boto3_backups']
+                         .group_data['backup_provider']['url'],
+                         'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com')
         self.assertEqual(self.backup_groups['my_scp_backups']
                          .group_data['backup_provider']['url'],
                          'scp://myscpuser@host.example.com/')
@@ -131,6 +136,21 @@ class TestBackupGroup(unittest.TestCase):
                            '--file-prefix-signature', 'signature_',
                            'etc',
                            's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc']])
+        self.assertEqual(self.backup_groups['my_s3_boto3_backups'].get_opts_raw('backup'),
+                         [['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
+                           '--volsize', '50',
+                           '--file-prefix-archive', 'archive_',
+                           '--file-prefix-manifest', 'manifest_',
+                           '--file-prefix-signature', 'signature_',
+                           '/home/shared',
+                           'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/home/shared'],
+                          ['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
+                           '--volsize', '50',
+                           '--file-prefix-archive', 'archive_',
+                           '--file-prefix-manifest', 'manifest_',
+                           '--file-prefix-signature', 'signature_',
+                           'etc',
+                           'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/etc']])
         self.assertEqual(self.backup_groups['my_local_backups'].get_opts_raw('backup'),
                          [['--no-encryption',
                            '--volsize', '200',
@@ -165,6 +185,21 @@ class TestBackupGroup(unittest.TestCase):
                            '--file-prefix-manifest', 'manifest_',
                            '--file-prefix-signature', 'signature_',
                            's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc',
+                           'restored/etc']])
+        self.assertEqual(self.backup_groups['my_s3_boto3_backups'].get_opts_raw('restore'),
+                         [['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
+                           '--volsize', '50',
+                           '--file-prefix-archive', 'archive_',
+                           '--file-prefix-manifest', 'manifest_',
+                           '--file-prefix-signature', 'signature_',
+                           'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/home/shared',
+                           '/root/restored/home/shared'],
+                          ['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
+                           '--volsize', '50',
+                           '--file-prefix-archive', 'archive_',
+                           '--file-prefix-manifest', 'manifest_',
+                           '--file-prefix-signature', 'signature_',
+                           'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/etc',
                            'restored/etc']])
         self.assertEqual(self.backup_groups['my_local_backups'].get_opts_raw('restore'),
                          [['--no-encryption',
@@ -369,16 +404,20 @@ class TestBackupProviderS3(unittest.TestCase):
         cls.config_provider_s3 = (cls.config_data['backup_groups']
                                                    ['my_s3_backups']
                                                    ['backup_provider'])
+        cls.config_provider_s3_boto3 = (cls.config_data['backup_groups']
+                                                       ['my_s3_boto3_backups']
+                                                       ['backup_provider'])
 
 
     def setUp(self):
         self.backup_s3 = BackupProvider.factory(self.config_provider_s3)
+        self.backup_s3_boto3 = BackupProvider.factory(self.config_provider_s3_boto3)
 
     def test_get_cmd(self):
         self.assertEqual(self.backup_s3.get_cmd('home/test'),
                          's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/test')
-        self.assertEqual(self.backup_s3.get_cmd('/home/test'),
-                         's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/home/test')
+        self.assertEqual(self.backup_s3_boto3.get_cmd('/home/test'),
+                         'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/home/test')
 
     def test_get_env(self):
         self.assertEqual(self.backup_s3.get_env(), {'AWS_ACCESS_KEY_ID': 'xxxxxx',

@@ -243,7 +243,7 @@ class BackupProvider:
         
         if re.search('^file://.*', url):
             return BackupProviderLocal(provider_data)
-        elif re.search('^s3://.*', url):
+        elif re.search('^(boto3\+)?s3://.*', url):
             return BackupProviderS3(provider_data, backup_group)
         elif re.search('^scp://.*', url) or re.search('^sftp://.*', url):
             return BackupProviderSSH(provider_data, backup_group)

@@ -41,12 +41,25 @@ class TestCLI(unittest.TestCase):
                                   '--file-prefix-manifest', 'manifest_',
                                   '--file-prefix-signature', 'signature_',
                                   'etc', 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc'],
-                                 ['--no-encryption', '--volsize', '200', '/home/katy',
+                                  ['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx',
+                                  '--volsize', '50', '--file-prefix-archive', 'archive_',
+                                  '--file-prefix-manifest', 'manifest_',
+                                  '--file-prefix-signature', 'signature_',
+                                  '/home/shared',
+                                  'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/home/shared'],
+                                 ['--encrypt-key', 'xxxxxx', '--sign-key', 'xxxxxx', '--volsize', '50',
+                                  '--file-prefix-archive', 'archive_',
+                                  '--file-prefix-manifest', 'manifest_',
+                                  '--file-prefix-signature', 'signature_',
+                                  'etc', 'boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/etc'],
+                                  ['--no-encryption', '--volsize', '200', '/home/katy',
                                   'scp://myscpuser@host.example.com//home/katy'],
                                  ['--no-encryption', '--volsize', '200', 'home/fun',
                                   'scp://myscpuser@host.example.com/home/fun']],
                                  'envs': [{},
                                           {},
+                                          {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'},
+                                          {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'},
                                           {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'},
                                           {'AWS_ACCESS_KEY_ID': 'xxxxxx', 'AWS_SECRET_ACCESS_KEY': 'xxxxxx'},
                                           {'FTP_PASSWORD': 'xxxxxx'},
@@ -178,6 +191,7 @@ class TestCLI(unittest.TestCase):
 
 
     def test_simple(self):
+        self.maxDiff = None
         self.assertEqual(self._get_duplicity_results('backup_example_complete'),
                          self.test_data['backup_example_complete']['result'])
 
@@ -220,6 +234,17 @@ class TestCLI(unittest.TestCase):
                     '--file-prefix-manifest manifest_ '
                     '--file-prefix-signature signature_ '
                     'etc s3://s3.sa-east-1.amazonaws.com/my-backup-bucket/etc\n\n'
+                    'Generating commands for group my_s3_boto3_backups:\n\n'
+                    'duplicity --encrypt-key xxxxxx --sign-key xxxxxx '
+                    '--volsize 50 --file-prefix-archive archive_ '
+                    '--file-prefix-manifest manifest_ '
+                    '--file-prefix-signature signature_ '
+                    '/home/shared boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/home/shared\n'
+                    'duplicity --encrypt-key xxxxxx --sign-key xxxxxx '
+                    '--volsize 50 --file-prefix-archive archive_ '
+                    '--file-prefix-manifest manifest_ '
+                    '--file-prefix-signature signature_ '
+                    'etc boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com/etc\n\n'
                     'Generating commands for group my_scp_backups:\n\n'
                     'duplicity --no-encryption --volsize 200 /home/katy '
                     'scp://myscpuser@host.example.com//home/katy\n'

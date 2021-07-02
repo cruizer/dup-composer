@@ -33,6 +33,27 @@ backup_groups:
       /home/shared:
         backup_path: /home/shared
         restore_path: /root/restored/home/shared
+  my_s3_boto3_backups:
+    encryption:
+      enabled: yes
+      gpg_key: xxxxxx
+      gpg_passphrase: xxxxxx
+    backup_provider:
+      url: boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com
+      aws_access_key: xxxxxx
+      aws_secret_key: xxxxxx
+    backup_file_prefixes:
+      manifest: manifest_
+      archive: archive_
+      signature: signature_
+    volume_size: 50
+    sources:
+      etc:
+        backup_path: etc
+        restore_path: restored/etc
+      /home/shared:
+        backup_path: /home/shared
+        restore_path: /root/restored/home/shared
   my_scp_backups:
     encryption:
       enabled: no
