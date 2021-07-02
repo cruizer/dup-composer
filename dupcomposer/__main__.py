@@ -86,7 +86,7 @@ def main():
 
 def usage():
     print("""-----
-usage: dupcomp.py [-d] [-f] [-s] [-c <configpath>] backup|restore
+usage: dupcomp.py [-d] [-s] [-f] [-c <configpath>] backup|restore [backup_group1 backup_group2 ...]
 
 optional arguments:
  -d                dry run (just print the commands to be executed)
