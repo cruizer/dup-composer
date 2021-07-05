@@ -13,6 +13,7 @@ import yaml
 import time
 import subprocess
 import os
+import sys
 from . import backup_config
 
 def read_config(file_path):
@@ -139,5 +140,6 @@ class BackupRunner:
                     print('Duplicity returned NORMALLY.\n')
                 else:
                     print('Duplicity returned with ERROR CODE {}'.format(proc.returncode))
+                    sys.exit(proc.returncode)
                 break
             time.sleep(1)

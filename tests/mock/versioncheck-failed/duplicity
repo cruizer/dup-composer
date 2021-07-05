@@ -1,0 +1,4 @@
+#!/bin/bash
+# Mocks a scenario, where checking the duplicity executable's presence fails.
+
+exit 1

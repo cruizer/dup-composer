@@ -1,2 +1,10 @@
 #!/bin/bash
-exit 1
+# Mocks exit code 42 for any duplicity executable run except, the initial version check.
+# See GitHub issue #22
+
+if [ $1 = '--version' ];then
+    echo 'duplicity 0.7.1'
+    exit 0
+else
+    exit 42
+fi

@@ -332,10 +332,13 @@ class TestCLI(unittest.TestCase):
 
 
     def test_duplicity_nonzero_return(self):
-        with patch.dict(self.environ, {'PATH': '../mock/nonzero-returncode'}):
+        with patch.dict(self.environ, {'PATH': '../mock/versioncheck-failed'}):
             self.assertRegex(self._get_cmd_out(['backup']),
                              r'^Executing "duplicity --version" has failed')
 
+        with patch.dict(self.environ, {'PATH': '../mock/nonzero-returncode'}):
+            self.assertEqual(self._get_cmd_returncode(['backup']),
+                             42)
 
     def test_changed_config(self):
         self.assertRegex(self._get_cmd_out(['-c', 'cache-test-fixture/dupcomposer-config-changed.yml', 'backup']),
@@ -367,7 +370,6 @@ class TestCLI(unittest.TestCase):
                                             'backup']),
                          expected)
 
-
     def test_cache_file_create(self):
         dummyfile = '/tmp/' + str(uuid.uuid4()) + '.yml'
         cachefile = '.'.join([dummyfile, '.cached'])
@@ -392,8 +394,7 @@ class TestCLI(unittest.TestCase):
 
     # END test methods
     # START utility methods
-
-    def _get_cmd_out(self, args):
+    def _run_cmd(self, args):
         """Execute dupcomp with the provided args and return the output."""
         cmd = [self.py3_exec, self.console_script]
         cmd.extend(args)
@@ -401,8 +402,17 @@ class TestCLI(unittest.TestCase):
                                 env=self.environ,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
+        return proc
+
+    def _get_cmd_out(self, args):
+        """Execute dupcomp with the provided args and return the output."""
+        proc = self._run_cmd(args)
         return proc.communicate()[0]
 
+    def _get_cmd_returncode(self, args):
+        proc = self._run_cmd(args)
+        proc.communicate()
+        return proc.returncode
 
     def _get_duplicity_results(self, test_data_variant):
         subprocess.run(self.test_data[test_data_variant]['command'],

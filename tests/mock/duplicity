@@ -17,10 +17,13 @@ def filter_dup_env(env):
 
 
 def main():
+
     if sys.argv[1] == '--version':
         print('duplicity 0.7.1')
         exit(0)
+
     print("Duplicity dummy implementation executed.")
+
     # Read the output file we need to write into
     outfile = os.environ['duplicity_mock_outfile']
     cache = {'args': [], 'envs': []}
