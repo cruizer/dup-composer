@@ -313,8 +313,8 @@ class BackupProviderS3(BackupProvider):
     """
     def __init__(self, provider_data, backup_group):
         super().__init__(provider_data, backup_group)
-        self.access_key = provider_data['aws_access_key']
-        self.secret_key = self._load_secret(provider_data['aws_secret_key'])
+        self.access_key = provider_data['aws_access_key_id']
+        self.secret_key = self._load_secret(provider_data['aws_secret_access_key'])
 
 
     def get_cmd(self, path):

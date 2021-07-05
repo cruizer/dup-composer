@@ -19,8 +19,8 @@ backup_groups:
       gpg_passphrase: xxxxxx
     backup_provider:
       url: s3://s3.sa-east-1.amazonaws.com/my-backup-bucket
-      aws_access_key: xxxxxx
-      aws_secret_key: xxxxxx
+      aws_access_key_id: xxxxxx
+      aws_secret_access_key: xxxxxx
     backup_file_prefixes:
       manifest: manifest_
       archive: archive_
@@ -40,8 +40,8 @@ backup_groups:
       gpg_passphrase: xxxxxx
     backup_provider:
       url: boto3+s3://my-backup-bucket.s3.sa-east-1.amazonaws.com
-      aws_access_key: xxxxxx
-      aws_secret_key: xxxxxx
+      aws_access_key_id: xxxxxx
+      aws_secret_access_key: xxxxxx
     backup_file_prefixes:
       manifest: manifest_
       archive: archive_

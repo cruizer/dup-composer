@@ -428,8 +428,8 @@ class TestBackupProviderS3(unittest.TestCase):
         backup_group = MagicMock()
         backup_group.keyring.get_secret.return_value = 'mysecretkey'
         provider = BackupProvider.factory({'url': 's3://dummybucket.s3.example.com/test',
-                                          'aws_access_key': 'xxxxxx',
-                                           'aws_secret_key': ['aws', 'account']},
+                                          'aws_access_key_id': 'xxxxxx',
+                                           'aws_secret_access_key': ['aws', 'account']},
                                           backup_group)
         self.assertEqual(provider.get_env(), {'AWS_ACCESS_KEY_ID': 'xxxxxx',
                                               'AWS_SECRET_ACCESS_KEY': 'mysecretkey'})
@@ -441,8 +441,8 @@ class TestBackupProviderS3(unittest.TestCase):
         self.assertRaises(ValueError,
                           BackupProvider.factory,
                           {'url': 's3://dummybucket.s3.example.com/test',
-                           'aws_access_key': 'xxxxxx',
-                           'aws_secret_key': [1, 2, 3]},
+                           'aws_access_key_id': 'xxxxxx',
+                           'aws_secret_access_key': [1, 2, 3]},
                           backup_keyring)
         backup_keyring.get_secret.assert_not_called()
 
@@ -451,8 +451,8 @@ class TestBackupProviderS3(unittest.TestCase):
         self.assertRaises(ValueError,
                           BackupProvider.factory,
                           {'url': 's3://dummybucket.s3.example.com/test',
-                           'aws_access_key': 'xxxxxx',
-                           'aws_secret_key': ['aws', 'account']},
+                           'aws_access_key_id': 'xxxxxx',
+                           'aws_secret_access_key': ['aws', 'account']},
                           None)
 
 
@@ -460,11 +460,11 @@ class TestBackupProviderS3(unittest.TestCase):
         self.assertRaises(KeyError,
                           BackupProvider.factory,
                           {'url': 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket',
-                           'aws_access_key': 'xxxxxx'})
+                           'aws_access_key_id': 'xxxxxx'})
         self.assertRaises(KeyError,
                           BackupProvider.factory,
                           {'url': 's3://s3.sa-east-1.amazonaws.com/my-backup-bucket',
-                           'aws_secret_key': 'xxxxxx'})
+                           'aws_secret_access_key': 'xxxxxx'})
 
         
 class TestBackupProviderSSH(unittest.TestCase):

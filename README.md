@@ -121,13 +121,13 @@ Finally, you have to configure **AWS S3** like this:
 ```yaml
 backup_provider:
   url: s3://s3.sa-east-1.amazonaws.com/my-backup-bucket
-  aws_access_key: EXAMPLEACCESSKEY
-  aws_secret_key: ExAmPlESeCrEtKeY
+  aws_access_key_id: EXAMPLEACCESSKEY
+  aws_secret_access_key: ExAmPlESeCrEtKeY
 ```
 
-The S3 bucket URL is configured as the `url` node value, while `aws_access_key` and `aws_secret_key` need to contain your *AWS* generated keys for the bucket. Like with the rest of the providers, the actual path, folder, within the bucket shouldn't be added to the URL.
+The S3 bucket URL is configured as the `url` node value, while `aws_access_key_id` and `aws_secret_access_key` need to contain your *AWS* generated keys for the bucket. Like with the rest of the providers, the actual path, folder, within the bucket shouldn't be added to the URL.
 
-**Keyring support:** The value of `aws_secret_key` can also be read from a keyring. See the [keyring support document](https://github.com/cruizer/dup-composer/blob/master/docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the secret key in the following format: `aws_secret_key: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
+**Keyring support:** The value of `aws_secret_access_key` can also be read from a keyring. See the [keyring support document](https://github.com/cruizer/dup-composer/blob/master/docs/md/keyring.md) for details on setting up the keyring to use with *Dup-composer*. Once the keyring has been set up, you can specify the secret key in the following format: `aws_secret_access_key: ['service_name_in_the_keyring', 'account_name_in_the_keyring']`.
 
 ### Backup file prefixes
 
@@ -249,8 +249,8 @@ backup_groups:
       gpg_passphrase: xxxxxx
     backup_provider:
       url: s3://s3.sa-east-1.amazonaws.com/my-backup-bucket
-      aws_access_key: xxxxxx
-      aws_secret_key: xxxxxx
+      aws_access_key_id: xxxxxx
+      aws_secret_access_key: xxxxxx
     backup_file_prefixes:
       manifest: manifest_
       archive: archive_
