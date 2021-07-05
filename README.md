@@ -146,6 +146,19 @@ The prefixes can be specifically set up for each file type generated at the back
 
 The `volume_size` node is rather simple: a number should be given as its value; this determines the **archive size in megabytes**.
 
+### Full backup frequency
+
+After the initial full backup including all your files has been created, Duplicity is designed to only take incremental backups containing only changes to minimize backup space and time usage. These incremental backups form a chain and can only be used to restore files when the initial full backup and all the subsequent incremental backups are available. Hence, you might want to take a full backup periodically. You can indicate **the frequency of full backups** using the `full_backup_frequency` node like this:
+
+```yaml
+backup_groups:
+  my_backup_group:
+    full_backup_frequency: 1M
+    ...
+```
+
+This configuration triggers the `--full-if-older-than` Duplicity command line option, and it can take any value that this option supports.
+
 ### Sources
 
 Under the `sources` node in the configuration hierarchy, you can specify a **list of locations** (paths) you want to back up, where to back them up and where the restored data should go. You can set up multiple sources within a single group. Here is an example set of two sources configured:
