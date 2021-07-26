@@ -17,7 +17,7 @@ You can find more detail for each step in its respective section.
 ## Requirements
 
 - Duplicity 0.7+ installed and the `duplicity` script on your PATH.
-- Python 3.5+
+- Python 3.6+
 - Keyring 19.2+\*
 - SecretStorage 3.1.1+\*
 - PyYAML 5.1+\*
