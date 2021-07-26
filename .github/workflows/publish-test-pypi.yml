@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: ${{ matrix.pyver }}
       - name: Run tests
-        run: python -m unittest .
+        run: python -m unittest
   publish:
     name: Build the package and publish to PyPI.
     runs-on: ubuntu-latest
