@@ -1,7 +1,21 @@
-name: Publish Dup-composer to PyPI.
-on: push
+name: Test and publish Dup-composer to PyPI.
+on: workflow_dispatch
 
 jobs:
+  test:
+    name: Run unittests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pyver: [3.6, 3.7]
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.pyver }}
+      - name: Run tests
+        run: python -m unittest .
   publish:
     name: Build the package and publish to PyPI.
     runs-on: ubuntu-latest
@@ -21,14 +35,14 @@ jobs:
           python setup.py
           sdist bdist_wheel
       - name: Publish to Test PyPI
-        if: ${{ ! startsWith(github.event.ref, 'refs/tags/v0') }}
+        if: ${{ startsWith(github.event.ref, 'refs/tags/v0') }}
         uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.test_pypi_password }}
           repository_url: https://test.pypi.org/legacy/
-      - name: Publish to PyPI
-        if: startsWith(github.event.ref, 'refs/tags/v0')
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.pypi_password }}
+#      - name: Publish to PyPI
+#        if: startsWith(github.event.ref, 'refs/tags/v0')
+#        uses: pypa/gh-action-pypi-publish@master
+#        with:
+#          password: ${{ secrets.pypi_password }}
           
